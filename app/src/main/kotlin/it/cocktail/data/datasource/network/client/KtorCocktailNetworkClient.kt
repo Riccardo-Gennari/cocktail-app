@@ -13,14 +13,25 @@ import io.ktor.serialization.kotlinx.json.json
 import it.cocktail.core.common.util.runCatchingCancelable
 import it.cocktail.data.datasource.network.dto.DrinksResponseDto
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
+import javax.inject.Named
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class KtorCocktailNetworkClient(
-    apiKey: String = PUBLIC_API_KEY,
+    apiKey: String,
     engine: HttpClientEngine = defaultEngine(),
-    timeout: Duration = 30.seconds,
+    timeout: Duration = defaultTimeout,
 ) : CocktailNetworkClient {
+    @Inject
+    constructor(
+        @Named("cocktailApiKey") apiKey: String,
+    ) : this(
+        apiKey,
+        engine = defaultEngine(),
+        timeout = defaultTimeout,
+    )
+
     private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/$apiKey/"
 
     private val client =
@@ -56,7 +67,7 @@ class KtorCocktailNetworkClient(
         }
 
     companion object {
-        const val PUBLIC_API_KEY = "1"
+        val defaultTimeout = 30.seconds
 
         fun defaultEngine(): HttpClientEngine =
             OkHttpEngine(

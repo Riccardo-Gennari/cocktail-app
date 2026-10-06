@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
 import it.cocktail.core.ui.component.LoadingOverlay
@@ -38,8 +39,8 @@ import it.cocktail.feature.list.model.SearchType
 
 @Composable
 fun DrinkListScreen(
-    viewModel: DrinkListViewModel,
     modifier: Modifier = Modifier,
+    viewModel: DrinkListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     DrinkListScreen(

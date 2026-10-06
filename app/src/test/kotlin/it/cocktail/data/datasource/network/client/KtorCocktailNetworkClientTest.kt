@@ -31,7 +31,7 @@ class KtorCocktailNetworkClientTest :
                     ),
                 )
 
-                val client = KtorCocktailNetworkClient(engine = ok(expectedDto))
+                val client = KtorCocktailNetworkClient(engine = ok(expectedDto), apiKey = "")
                 val result = client.query("name")
 
                 result.isSuccess shouldBe true
@@ -40,21 +40,21 @@ class KtorCocktailNetworkClientTest :
             }
 
             should("return Result.failure on 500 HTTP error") {
-                val client = KtorCocktailNetworkClient(engine = ServerError)
+                val client = KtorCocktailNetworkClient(engine = ServerError, apiKey = "")
                 val result = client.query("name")
 
                 result.isFailure shouldBe true
             }
 
             should("return Result.failure on malformed JSON response") {
-                val client = KtorCocktailNetworkClient(engine = InvalidJson)
+                val client = KtorCocktailNetworkClient(engine = InvalidJson, apiKey = "")
                 val result = client.query("name")
 
                 result.isFailure shouldBe true
             }
 
             should("return Result.success with empty list when API returns 'no data found'") {
-                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": "no data found"}"""))
+                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": "no data found"}"""), apiKey = "")
                 val result = client.query("name")
 
                 result.isSuccess shouldBe true
@@ -62,7 +62,7 @@ class KtorCocktailNetworkClientTest :
             }
 
             should("return Result.success when API returns null drinks") {
-                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": null}"""))
+                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": null}"""), apiKey = "")
                 val result = client.query("name")
 
                 result.isSuccess shouldBe true

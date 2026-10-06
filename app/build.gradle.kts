@@ -1,12 +1,15 @@
 import it.cocktail.convention.BuildParams
 import it.cocktail.convention.getAsInt
 import it.cocktail.convention.setupKotlin
+import it.cocktail.convention.setupTesting
 import it.cocktail.convention.versionCode
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.semanticVersioning)
 }
 
@@ -20,12 +23,15 @@ kotlin {
 dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.bundles.compose)
+    implementation(libs.bundles.hilt)
     implementation(libs.bundles.ktor)
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
 
     debugImplementation(libs.compose.uiTooling)
+
+    ksp(libs.hilt.compiler)
 
     testImplementation(libs.bundles.unitTest)
     testImplementation(libs.ktor.client.mock)
@@ -39,6 +45,7 @@ android {
     defaultConfig {
         applicationId = BuildParams.PACKAGE_NAME
         buildConfigField("String", "APP_NAME", "\"${BuildParams.APP_NAME}\"")
+        buildConfigField("String", "COCKTAIL_API_KEY", "\"${BuildParams.COCKTAIL_API_KEY}\"")
         manifestPlaceholders["appName"] = BuildParams.APP_NAME
         minSdk = libs.versions.android.minSdk
             .getAsInt()
@@ -79,8 +86,4 @@ android {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    filter.isFailOnNoMatchingTests = false
-    failOnNoDiscoveredTests = false
-}
+setupTesting()
