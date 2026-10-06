@@ -6,6 +6,7 @@ import it.cocktail.convention.versionCode
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.semanticVersioning)
 }
 
@@ -19,11 +20,15 @@ kotlin {
 dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.bundles.compose)
+    implementation(libs.bundles.ktor)
     implementation(libs.compose.uiToolingPreview)
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
 
     debugImplementation(libs.compose.uiTooling)
 
     testImplementation(libs.bundles.unitTest)
+    testImplementation(libs.ktor.client.mock)
 }
 
 android {

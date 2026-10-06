@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search">Search</string>
+    <string name="app_name">Cocktail App</string>
+    <string name="search_cocktail_name">Search cocktail name…</string>
+    <string name="search_cocktail_ingredient">Search ingredient (e.g. Rum, Mint)…</string>
+    <string name="name">Name</string>
+    <string name="ingredient">Ingredient</string>
+    <string name="no_drinks_found">No cocktails found</string>
+    <string name="no_drinks_found_description">Try adjusting your search query or filter type.</string>
+</resources>
