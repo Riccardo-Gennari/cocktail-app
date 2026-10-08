@@ -1,5 +1,8 @@
 package it.cocktail.data.repository
 
+import it.cocktail.data.datasource.local.PersistentStorage
+import it.cocktail.data.datasource.local.mapper.toDomain
+import it.cocktail.data.datasource.local.mapper.toLocalDto
 import it.cocktail.data.datasource.network.client.CocktailNetworkClient
 import it.cocktail.data.datasource.network.mapper.toDomain
 import it.cocktail.domain.model.DrinkDetail
@@ -10,7 +13,27 @@ class DefaultDrinkDetailRepository
     @Inject
     constructor(
         private val networkClient: CocktailNetworkClient,
+        private val persistentStorage: PersistentStorage,
     ) : DrinkDetailRepository {
         override suspend fun getDetail(id: Int): Result<DrinkDetail?> =
-            networkClient.getDrinkDetail(id).map { it?.drinks?.firstOrNull()?.toDomain() }
+            persistentStorage.getDrinkDetail(id).fold(
+                onSuccess = { storedDto ->
+                    if (storedDto != null) {
+                        Result.success(storedDto.toDomain())
+                    } else {
+                        fetchAndCacheNetworkDetail(id)
+                    }
+                },
+                onFailure = { fetchAndCacheNetworkDetail(id) },
+            )
+
+        private suspend fun fetchAndCacheNetworkDetail(id: Int): Result<DrinkDetail?> =
+            networkClient
+                .getDrinkDetail(id)
+                .map { response -> response?.drinks?.firstOrNull()?.toDomain() }
+                .onSuccess { domainDrink ->
+                    if (domainDrink != null) {
+                        persistentStorage.storeDrinkDetail(domainDrink.toLocalDto())
+                    }
+                }
     }

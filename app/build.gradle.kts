@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room3)
     alias(libs.plugins.semanticVersioning)
 }
 
@@ -28,10 +29,12 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.room3.runtime)
 
     debugImplementation(libs.compose.uiTooling)
 
     ksp(libs.hilt.compiler)
+    ksp(libs.room3.compiler)
 
     testImplementation(libs.bundles.unitTest)
     testImplementation(libs.ktor.client.mock)
@@ -84,6 +87,10 @@ android {
             isIncludeAndroidResources = true
         }
     }
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 setupTesting()

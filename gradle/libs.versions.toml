@@ -23,6 +23,7 @@ ktlint-compose-rules = "0.6.7"
 ktlint-core = "1.8.0"
 ktor = "3.6.0"
 mockk = "1.14.11"
+room3 = "3.0.3"
 semanticVersioning = "0.19.5"
 slf4jNop = "2.0.20"
 turbine = "1.2.1"
@@ -62,6 +63,8 @@ ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref =
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
 semanticVersioning-gradlePlugin = { module = "com.github.jmongard:git-semver-plugin", version.ref = "semanticVersioning" }
 slf4j-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4jNop" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
@@ -78,6 +81,7 @@ unitTest = [ "kotest-assertions-core", "kotest-property", "kotest-runner-junit5"
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+room3 = { id = "androidx.room3", version.ref = "room3" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

@@ -1,10 +1,10 @@
 package it.cocktail.data.datasource.network.mapper
 
 import it.cocktail.data.datasource.network.client.CocktailEndpoint
-import it.cocktail.data.datasource.network.dto.DrinkSummaryDto
+import it.cocktail.data.datasource.network.dto.DrinkSummaryNetworkDto
 import it.cocktail.domain.model.DrinkSummary
 
-fun DrinkSummaryDto.toDomain(): DrinkSummary? {
+fun DrinkSummaryNetworkDto.toDomain(): DrinkSummary? {
     val id = id ?: return null
     val name = name?.takeIf { it.isNotBlank() } ?: return null
     return DrinkSummary(

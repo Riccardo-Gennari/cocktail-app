@@ -4,16 +4,16 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import it.cocktail.data.datasource.network.client.CocktailEndpoint
-import it.cocktail.data.datasource.network.dto.DrinkDetailDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailNetworkDto
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.model.Ingredient
 
-class DrinkDetailDtoMapperTest :
+class DrinkDetailNetworkDtoMapperTest :
     BehaviorSpec(
         {
             Given("a DrinkDetailDto") {
                 When("id is null") {
-                    val dto = DrinkDetailDto(id = null, name = "name 1")
+                    val dto = DrinkDetailNetworkDto(id = null, name = "name 1")
 
                     Then("toDomain should return null") {
                         dto.toDomain().shouldBeNull()
@@ -22,13 +22,13 @@ class DrinkDetailDtoMapperTest :
 
                 When("name is null or blank") {
                     Then("toDomain should return null") {
-                        DrinkDetailDto(id = 1, name = null).toDomain().shouldBeNull()
-                        DrinkDetailDto(id = 1, name = "   ").toDomain().shouldBeNull()
+                        DrinkDetailNetworkDto(id = 1, name = null).toDomain().shouldBeNull()
+                        DrinkDetailNetworkDto(id = 1, name = "   ").toDomain().shouldBeNull()
                     }
                 }
 
                 When("all fields are valid") {
-                    val dto = DrinkDetailDto(
+                    val dto = DrinkDetailNetworkDto(
                         id = 1,
                         name = "name 1",
                         category = "category 1",
@@ -77,7 +77,7 @@ class DrinkDetailDtoMapperTest :
                 }
 
                 When("optional fields are null") {
-                    val dto = DrinkDetailDto(
+                    val dto = DrinkDetailNetworkDto(
                         id = 1,
                         name = "name 1",
                         category = null,

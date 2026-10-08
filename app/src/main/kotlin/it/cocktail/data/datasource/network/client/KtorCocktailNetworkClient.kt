@@ -11,8 +11,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
 import it.cocktail.core.common.util.runCatchingCancelable
-import it.cocktail.data.datasource.network.dto.DrinkDetailResponseDto
-import it.cocktail.data.datasource.network.dto.DrinksResponseDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailResponseNetworkDto
+import it.cocktail.data.datasource.network.dto.DrinksResponseNetworkDto
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Named
@@ -53,25 +53,25 @@ class KtorCocktailNetworkClient(
             }
         }
 
-    override suspend fun getDrinkDetail(id: Int): Result<DrinkDetailResponseDto?> =
+    override suspend fun getDrinkDetail(id: Int): Result<DrinkDetailResponseNetworkDto?> =
         runCatchingCancelable {
             client
                 .get("$baseUrl/lookup.php") { parameter("i", id) }
-                .body<DrinkDetailResponseDto>()
+                .body<DrinkDetailResponseNetworkDto>()
         }
 
-    override suspend fun searchByIngredient(ingredient: String): Result<DrinksResponseDto> =
+    override suspend fun searchByIngredient(ingredient: String): Result<DrinksResponseNetworkDto> =
         runCatchingCancelable {
             client
                 .get("$baseUrl/filter.php") { parameter("i", ingredient) }
-                .body<DrinksResponseDto>()
+                .body<DrinksResponseNetworkDto>()
         }
 
-    override suspend fun searchByName(name: String): Result<DrinksResponseDto> =
+    override suspend fun searchByName(name: String): Result<DrinksResponseNetworkDto> =
         runCatchingCancelable {
             client
                 .get("$baseUrl/search.php") { parameter("s", name) }
-                .body<DrinksResponseDto>()
+                .body<DrinksResponseNetworkDto>()
         }
 
     companion object {

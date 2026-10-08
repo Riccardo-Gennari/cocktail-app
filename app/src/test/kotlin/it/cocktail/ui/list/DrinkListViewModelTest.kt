@@ -16,7 +16,8 @@ import it.cocktail.core.common.log.Logger
 import it.cocktail.core.ui.model.UiText
 import it.cocktail.domain.model.DrinkQuery
 import it.cocktail.domain.model.DrinkSummary
-import it.cocktail.domain.usecase.GetDrinksUseCase
+import it.cocktail.domain.usecase.GetLastDrinksUseCase
+import it.cocktail.domain.usecase.SearchDrinksUseCase
 import it.cocktail.ui.list.mapper.toDrinkQuery
 import it.cocktail.ui.list.mapper.toUi
 import it.cocktail.ui.list.model.DrinkListUiState
@@ -30,19 +31,22 @@ import kotlin.time.Duration.Companion.seconds
 
 class DrinkListViewModelTest :
     BehaviorSpec({
-        Given("a DrinkListViewModel") {
-            val getDrinks = mockk<GetDrinksUseCase>()
+        Given("an instance") {
+            val searchDrinks = mockk<SearchDrinksUseCase>()
+            val getLastDrinks = mockk<GetLastDrinksUseCase> {
+                coEvery { this@mockk.invoke() } returns Result.success(emptyList())
+            }
             val navigator = mockk<DrinkListNavigator>(relaxed = true)
             val log = mockk<Logger>(relaxed = true)
-            val viewModel = DrinkListViewModel(getDrinks, log, navigator)
+            val viewModel = DrinkListViewModel(getLastDrinks, log, navigator, searchDrinks)
 
             val drinks = List(3) { DrinkSummary(id = it, name = "name $it", imageUri = "image $it") }
 
-            fun mockGetDrinks(
+            fun mockSearchDrinks(
                 query: DrinkQuery,
                 result: Result<List<DrinkSummary>>,
             ) {
-                coEvery { getDrinks(query) } coAnswers {
+                coEvery { searchDrinks(query) } coAnswers {
                     delay(1.seconds)
                     result
                 }
@@ -51,6 +55,18 @@ class DrinkListViewModelTest :
             When("it is initialized") {
                 Then("it exposes a uiState") {
                     viewModel.uiState.test { awaitItem() }
+                }
+
+                Then("it fetches last drinks and populates drinkList") {
+                    val storedDrinks = List(2) { DrinkSummary(id = it, name = "stored $it", imageUri = "image $it") }
+                    val getLastDrinksMock = mockk<GetLastDrinksUseCase> {
+                        coEvery { this@mockk.invoke() } returns Result.success(storedDrinks)
+                    }
+                    val viewModelWithStored = DrinkListViewModel(getLastDrinksMock, log, navigator, searchDrinks)
+                    viewModelWithStored.uiState.test {
+                        val state = awaitUntil { it.drinkList.isNotEmpty() }
+                        state.drinkList shouldBe storedDrinks.map { it.toUi() }
+                    }
                 }
             }
 
@@ -74,7 +90,7 @@ class DrinkListViewModelTest :
                     }
 
                     And("the search succeeds") {
-                        mockGetDrinks(query, Result.success(drinks))
+                        mockSearchDrinks(query, Result.success(drinks))
 
                         Then("uiState is updated with the new data") {
                             viewModel.uiState.test {
@@ -87,7 +103,7 @@ class DrinkListViewModelTest :
                     }
 
                     And("the search fails") {
-                        mockGetDrinks(query, Result.failure(IllegalStateException("exception msg")))
+                        mockSearchDrinks(query, Result.failure(IllegalStateException("exception msg")))
 
                         Then("uiState has empty data and an error message") {
                             viewModel.uiState.test {
@@ -114,7 +130,7 @@ class DrinkListViewModelTest :
                                 search()
                                 awaitUntil { it.message != null }
 
-                                mockGetDrinks(query, Result.success(drinks))
+                                mockSearchDrinks(query, Result.success(drinks))
                                 viewModel.onSnackBarResult(SnackbarResult.ActionPerformed)
 
                                 val state = awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }

@@ -18,7 +18,7 @@ class GetDrinkDetailUseCaseTest :
                 val drinkId = 1
                 val expectedDrink = DrinkDetail(id = drinkId, name = "name 1")
 
-                And("repository returns success") {
+                And("repository returns success with drink detail") {
                     coEvery { repository.getDetail(drinkId) } returns Result.success(expectedDrink)
 
                     Then("it should return success result with drink detail") {
@@ -26,6 +26,18 @@ class GetDrinkDetailUseCaseTest :
 
                         result.isSuccess shouldBe true
                         result.getOrThrow() shouldBe expectedDrink
+                        coVerify(exactly = 1) { repository.getDetail(drinkId) }
+                    }
+                }
+
+                And("repository returns success with null drink detail") {
+                    coEvery { repository.getDetail(drinkId) } returns Result.success(null)
+
+                    Then("it should return success result with null") {
+                        val result = useCase(drinkId)
+
+                        result.isSuccess shouldBe true
+                        result.getOrThrow() shouldBe null
                         coVerify(exactly = 1) { repository.getDetail(drinkId) }
                     }
                 }

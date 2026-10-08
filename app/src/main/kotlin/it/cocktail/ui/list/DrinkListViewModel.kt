@@ -11,7 +11,8 @@ import it.cocktail.core.ui.model.UiMessageDuration
 import it.cocktail.core.ui.model.UiText
 import it.cocktail.core.ui.util.LoadingStateManager
 import it.cocktail.core.ui.util.launchWhileLoading
-import it.cocktail.domain.usecase.GetDrinksUseCase
+import it.cocktail.domain.usecase.GetLastDrinksUseCase
+import it.cocktail.domain.usecase.SearchDrinksUseCase
 import it.cocktail.ui.list.mapper.toDrinkQuery
 import it.cocktail.ui.list.mapper.toUi
 import it.cocktail.ui.list.model.DrinkListUiState
@@ -31,9 +32,10 @@ import javax.inject.Inject
 class DrinkListViewModel
     @Inject
     constructor(
-        private val getDrinks: GetDrinksUseCase,
+        private val getLastDrinks: GetLastDrinksUseCase,
         private val log: Logger,
         private val navigator: DrinkListNavigator,
+        private val searchDrinks: SearchDrinksUseCase,
     ) : ViewModel() {
         private val drinksFlow = MutableStateFlow<List<DrinkSummaryUiModel>>(emptyList())
         private val loadingState = LoadingStateManager()
@@ -54,6 +56,15 @@ class DrinkListViewModel
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), DrinkListUiState())
 
+        init {
+            viewModelScope.launchWhileLoading(loadingState) {
+                getLastDrinks().fold(
+                    onSuccess = { drinks -> drinksFlow.value = drinks.map { it.toUi() } },
+                    onFailure = { log.debug(TAG, "Failed to recover stored drinks", it) },
+                )
+            }
+        }
+
         fun onSnackBarResult(result: SnackbarResult) {
             messageFlow.value = null
             if (result == SnackbarResult.ActionPerformed) {
@@ -63,7 +74,7 @@ class DrinkListViewModel
 
         fun onSearch() {
             viewModelScope.launchWhileLoading(loadingState) {
-                getDrinks(query = searchStateFlow.value.toDrinkQuery()).fold(
+                searchDrinks(query = searchStateFlow.value.toDrinkQuery()).fold(
                     onSuccess = {
                         drinksFlow.value = it.map { drink -> drink.toUi() }
                         messageFlow.value = null

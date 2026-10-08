@@ -8,17 +8,17 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import it.cocktail.data.datasource.network.dto.DrinkDetailDto
-import it.cocktail.data.datasource.network.dto.DrinkDetailResponseDto
-import it.cocktail.data.datasource.network.dto.DrinkSummaryDto
-import it.cocktail.data.datasource.network.dto.DrinksResponseDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailNetworkDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailResponseNetworkDto
+import it.cocktail.data.datasource.network.dto.DrinkSummaryNetworkDto
+import it.cocktail.data.datasource.network.dto.DrinksResponseNetworkDto
 import kotlinx.serialization.json.Json
 
 class KtorCocktailNetworkClientTest :
     ShouldSpec({
-        val summaryDto = DrinksResponseDto(
+        val summaryDto = DrinksResponseNetworkDto(
             drinks = listOf(
-                DrinkSummaryDto(
+                DrinkSummaryNetworkDto(
                     id = 11007,
                     name = "name",
                     imageUri = "imageUri",
@@ -26,9 +26,9 @@ class KtorCocktailNetworkClientTest :
             ),
         )
 
-        val detailDto = DrinkDetailResponseDto(
+        val detailDto = DrinkDetailResponseNetworkDto(
             drinks = listOf(
-                DrinkDetailDto(
+                DrinkDetailNetworkDto(
                     id = 1,
                     name = "name",
                     category = "category",

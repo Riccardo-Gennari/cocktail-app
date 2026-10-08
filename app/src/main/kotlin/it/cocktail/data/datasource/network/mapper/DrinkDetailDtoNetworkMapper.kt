@@ -1,11 +1,11 @@
 package it.cocktail.data.datasource.network.mapper
 
 import it.cocktail.data.datasource.network.client.CocktailEndpoint
-import it.cocktail.data.datasource.network.dto.DrinkDetailDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailNetworkDto
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.model.Ingredient
 
-fun DrinkDetailDto.toDomain(): DrinkDetail? {
+fun DrinkDetailNetworkDto.toDomain(): DrinkDetail? {
     val id = id ?: return null
     val name = name?.takeIf { it.isNotBlank() } ?: return null
 
@@ -21,7 +21,7 @@ fun DrinkDetailDto.toDomain(): DrinkDetail? {
     )
 }
 
-private fun DrinkDetailDto.toIngredients(): List<Ingredient> =
+private fun DrinkDetailNetworkDto.toIngredients(): List<Ingredient> =
     listOf(
         ingredient1 to measure1,
         ingredient2 to measure2,

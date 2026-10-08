@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DrinkDetailDto(
+data class DrinkDetailNetworkDto(
     @SerialName("idDrink") val id: Int? = null,
     @SerialName("strDrink") val name: String? = null,
     @SerialName("strCategory") val category: String? = null,
