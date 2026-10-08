@@ -1,101 +1,141 @@
 package it.cocktail.data.datasource.network.client
 
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.datatest.withData
+import io.kotest.core.spec.style.scopes.ShouldSpecContainerScope
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import it.cocktail.data.datasource.network.dto.DrinkDetailDto
+import it.cocktail.data.datasource.network.dto.DrinkDetailResponseDto
 import it.cocktail.data.datasource.network.dto.DrinkSummaryDto
 import it.cocktail.data.datasource.network.dto.DrinksResponseDto
 import kotlinx.serialization.json.Json
 
 class KtorCocktailNetworkClientTest :
     ShouldSpec({
-        withData<suspend KtorCocktailNetworkClient.(query: String) -> Result<DrinksResponseDto>>(
-            mapOf(
-                "searchByName" to { searchByName(it) },
-                "searchByIngredient" to { searchByIngredient(it) },
+        val summaryDto = DrinksResponseDto(
+            drinks = listOf(
+                DrinkSummaryDto(
+                    id = 11007,
+                    name = "name",
+                    imageUri = "imageUri",
+                ),
             ),
-        ) { query ->
-            should("return Result.success on valid 200 response") {
-                val expectedDto = DrinksResponseDto(
-                    drinks = listOf(
-                        DrinkSummaryDto(
-                            id = 11007,
-                            name = "name",
-                            imageUri = "imageUri",
-                        ),
-                    ),
-                )
+        )
 
-                val client = KtorCocktailNetworkClient(engine = ok(expectedDto), apiKey = "")
-                val result = client.query("name")
+        val detailDto = DrinkDetailResponseDto(
+            drinks = listOf(
+                DrinkDetailDto(
+                    id = 1,
+                    name = "name",
+                    category = "category",
+                    ingredient1 = "ingredient1",
+                    measure1 = "measure1",
+                ),
+            ),
+        )
+
+        suspend fun <T, U> ShouldSpecContainerScope.testEndpoint(
+            call: suspend KtorCocktailNetworkClient.() -> Result<T>,
+            validClient: KtorCocktailNetworkClient,
+            validDto: T,
+            extractDrinks: (T?) -> List<U>?,
+        ) {
+            should("return Result.success on valid 200 response") {
+                val result = validClient.call()
 
                 result.isSuccess shouldBe true
-                val dto = result.getOrNull()
-                dto shouldBe expectedDto
+                result.getOrNull() shouldBe validDto
             }
 
             should("return Result.failure on 500 HTTP error") {
-                val client = KtorCocktailNetworkClient(engine = ServerError, apiKey = "")
-                val result = client.query("name")
-
-                result.isFailure shouldBe true
+                ServerErrorClient.call().isFailure shouldBe true
             }
 
             should("return Result.failure on malformed JSON response") {
-                val client = KtorCocktailNetworkClient(engine = InvalidJson, apiKey = "")
-                val result = client.query("name")
-
-                result.isFailure shouldBe true
+                InvalidJsonClient.call().isFailure shouldBe true
             }
 
             should("return Result.success with empty list when API returns 'no data found'") {
-                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": "no data found"}"""), apiKey = "")
-                val result = client.query("name")
+                val result = successClient("""{"drinks": "no data found"}""").call()
 
                 result.isSuccess shouldBe true
-                result.getOrNull()?.drinks shouldBe emptyList()
+                extractDrinks(result.getOrNull()) shouldBe emptyList()
             }
 
             should("return Result.success when API returns null drinks") {
-                val client = KtorCocktailNetworkClient(engine = ok("""{"drinks": null}"""), apiKey = "")
-                val result = client.query("name")
+                val result = successClient("""{"drinks": null}""").call()
 
                 result.isSuccess shouldBe true
-                result.getOrNull()?.drinks shouldBe null
+                extractDrinks(result.getOrNull()) shouldBe null
             }
         }
+
+        context("searchByName") {
+            testEndpoint(
+                call = { searchByName("name") },
+                validClient = successClientDto(summaryDto),
+                validDto = summaryDto,
+                extractDrinks = { it?.drinks },
+            )
+        }
+
+        context("searchByIngredient") {
+            testEndpoint(
+                call = { searchByIngredient("name") },
+                validClient = successClientDto(summaryDto),
+                validDto = summaryDto,
+                extractDrinks = { it?.drinks },
+            )
+        }
+
+        context("getDrinkDetail") {
+            testEndpoint(
+                call = { getDrinkDetail(1) },
+                validClient = successClientDto(detailDto),
+                validDto = detailDto,
+                extractDrinks = { it?.drinks },
+            )
+        }
     }) {
-    private companion object MockEngine {
-        val InvalidJson = MockEngine { _ ->
-            respond(
-                content = "{ invalid json }",
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json"),
-            )
-        }
-
-        val ServerError = MockEngine { _ ->
-            respond(
-                content = "Internal Server Error",
-                status = HttpStatusCode.InternalServerError,
-                headers = headersOf(HttpHeaders.ContentType, "text/plain"),
-            )
-        }
-
-        fun ok(json: String) =
-            MockEngine { _ ->
+    private companion object MockClient {
+        val InvalidJsonClient = KtorCocktailNetworkClient(
+            apiKey = "any",
+            engine = MockEngine { _ ->
                 respond(
-                    content = json,
+                    content = "{ invalid json }",
                     status = HttpStatusCode.OK,
                     headers = headersOf(HttpHeaders.ContentType, "application/json"),
                 )
-            }
+            },
+        )
 
-        fun ok(dto: DrinksResponseDto) = ok(Json.encodeToString(dto))
+        val ServerErrorClient = KtorCocktailNetworkClient(
+            apiKey = "any",
+            engine = MockEngine { _ ->
+                respond(
+                    content = "Internal Server Error",
+                    status = HttpStatusCode.InternalServerError,
+                    headers = headersOf(HttpHeaders.ContentType, "text/plain"),
+                )
+            },
+        )
+
+        fun successClient(json: String) =
+            KtorCocktailNetworkClient(
+                apiKey = "any",
+                engine = MockEngine { _ ->
+                    respond(
+                        content = json,
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                },
+            )
+
+        inline fun <reified T> successClientDto(dto: T) = successClient(Json.encodeToString(dto))
     }
 }

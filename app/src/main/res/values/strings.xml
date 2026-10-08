@@ -8,4 +8,9 @@
     <string name="ingredient">Ingredient</string>
     <string name="no_drinks_found">No cocktails found</string>
     <string name="no_drinks_found_description">Try adjusting your search query or filter type.</string>
+    <string name="category">Category</string>
+    <string name="alcoholic">Alcoholic</string>
+    <string name="glass">Glass</string>
+    <string name="instructions">Instructions</string>
+    <string name="ingredients">Ingredients</string>
 </resources>

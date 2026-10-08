@@ -11,6 +11,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
 import it.cocktail.core.common.util.runCatchingCancelable
+import it.cocktail.data.datasource.network.dto.DrinkDetailResponseDto
 import it.cocktail.data.datasource.network.dto.DrinksResponseDto
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -32,7 +33,7 @@ class KtorCocktailNetworkClient(
         timeout = defaultTimeout,
     )
 
-    private val baseUrl = "https://www.thecocktaildb.com/api/json/v1/$apiKey/"
+    private val baseUrl = CocktailEndpoint.apiPath(apiKey)
 
     private val client =
         HttpClient(engine) {
@@ -52,17 +53,24 @@ class KtorCocktailNetworkClient(
             }
         }
 
-    override suspend fun searchByName(name: String): Result<DrinksResponseDto> =
+    override suspend fun getDrinkDetail(id: Int): Result<DrinkDetailResponseDto?> =
         runCatchingCancelable {
             client
-                .get("$baseUrl/search.php") { parameter("s", name) }
-                .body<DrinksResponseDto>()
+                .get("$baseUrl/lookup.php") { parameter("i", id) }
+                .body<DrinkDetailResponseDto>()
         }
 
     override suspend fun searchByIngredient(ingredient: String): Result<DrinksResponseDto> =
         runCatchingCancelable {
             client
                 .get("$baseUrl/filter.php") { parameter("i", ingredient) }
+                .body<DrinksResponseDto>()
+        }
+
+    override suspend fun searchByName(name: String): Result<DrinksResponseDto> =
+        runCatchingCancelable {
+            client
+                .get("$baseUrl/search.php") { parameter("s", name) }
                 .body<DrinksResponseDto>()
         }
 

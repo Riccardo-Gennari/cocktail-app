@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Stable
 import coil3.Uri
 import coil3.toUri
+import it.cocktail.R
 
 @Stable
 sealed interface ImageUiModel
@@ -12,7 +13,11 @@ sealed interface ImageUiModel
 @Stable
 value class ImageResource(
     @DrawableRes val resId: Int,
-) : ImageUiModel
+) : ImageUiModel {
+    companion object {
+        val drinkSample = ImageResource(R.drawable.drink_sample)
+    }
+}
 
 @JvmInline
 @Stable
