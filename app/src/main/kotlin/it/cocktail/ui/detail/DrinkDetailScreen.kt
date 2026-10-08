@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -31,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
 import it.cocktail.core.ui.component.LoadingOverlay
 import it.cocktail.core.ui.component.SnackBarEffect
+import it.cocktail.core.ui.model.UiMessageResult
 import it.cocktail.ui.detail.component.DrinkCoverImage
 import it.cocktail.ui.detail.component.DrinkDetailInfoChips
 import it.cocktail.ui.detail.component.DrinkIngredients
@@ -47,7 +49,7 @@ fun DrinkDetailScreen(
     DrinkDetailScreen(
         uiState = uiState,
         modifier = modifier,
-        onMessageShown = viewModel::onMessageShown,
+        onMessageResult = viewModel::onMessageResult,
         onNavigateBack = viewModel::onNavigateBack,
     )
 }
@@ -57,15 +59,15 @@ fun DrinkDetailScreen(
 fun DrinkDetailScreen(
     uiState: DrinkDetailUiState,
     modifier: Modifier = Modifier,
-    onMessageShown: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    onMessageResult: (UiMessageResult) -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
     val snackBarState = remember { SnackbarHostState() }
 
     BackHandler(onBack = onNavigateBack)
-    SnackBarEffect(snackBarState, uiState.message, onMessageShown)
+    SnackBarEffect(snackBarState, uiState.message?.asSnackBarVisuals(), onMessageResult)
 
     Scaffold(
         modifier = modifier,
@@ -86,7 +88,11 @@ fun DrinkDetailScreen(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackBarState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarState) { snackBarData ->
+                Snackbar(snackBarData)
+            }
+        },
     ) { scaffoldPadding ->
         LoadingOverlay(
             uiState.isLoading,

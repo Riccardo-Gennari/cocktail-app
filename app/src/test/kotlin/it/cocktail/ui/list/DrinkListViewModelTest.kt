@@ -1,184 +1,176 @@
 package it.cocktail.ui.list
 
+import androidx.compose.material3.SnackbarResult
+import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
-import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEmpty
-import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
+import it.cocktail.R
+import it.cocktail.core.common.log.Logger
+import it.cocktail.core.ui.model.UiText
 import it.cocktail.domain.model.DrinkQuery
 import it.cocktail.domain.model.DrinkSummary
 import it.cocktail.domain.usecase.GetDrinksUseCase
 import it.cocktail.ui.list.mapper.toDrinkQuery
 import it.cocktail.ui.list.mapper.toUi
+import it.cocktail.ui.list.model.DrinkListUiState
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
 import it.cocktail.ui.list.model.SearchState
 import it.cocktail.ui.list.model.SearchType
 import it.cocktail.ui.list.navigation.DrinkListNavigator
+import it.cocktail.util.awaitUntil
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 class DrinkListViewModelTest :
-    BehaviorSpec(
-        {
-            Given("an instance") {
-                val getDrinks = mockk<GetDrinksUseCase>()
-                val navigator = mockk<DrinkListNavigator>(relaxed = true)
-                val viewModel = DrinkListViewModel(getDrinks, navigator)
+    BehaviorSpec({
+        Given("a DrinkListViewModel") {
+            val getDrinks = mockk<GetDrinksUseCase>()
+            val navigator = mockk<DrinkListNavigator>(relaxed = true)
+            val log = mockk<Logger>(relaxed = true)
+            val viewModel = DrinkListViewModel(getDrinks, log, navigator)
 
-                When("it is initialized") {
-                    coEvery { getDrinks(any<DrinkQuery>()) } returns Result.success(emptyList())
+            val drinks = List(3) { DrinkSummary(id = it, name = "name $it", imageUri = "image $it") }
 
-                    Then("it should expose a non-empty uiState flow") {
-                        viewModel.uiState.test {
-                            shouldNotThrow<AssertionError> { awaitItem() }
-                        }
-                    }
+            fun mockGetDrinks(
+                query: DrinkQuery,
+                result: Result<List<DrinkSummary>>,
+            ) {
+                coEvery { getDrinks(query) } coAnswers {
+                    delay(1.seconds)
+                    result
                 }
+            }
 
-                When("a valid search query is set") {
-                    withData(
-                        SearchState(query = "name", type = SearchType.NAME),
-                        SearchState(query = "ingredient", type = SearchType.INGREDIENT),
-                    ) { searchState ->
-                        viewModel.onSearchTypeChanged(searchState.type)
-                        viewModel.onSearchQueryChanged(searchState.query)
+            When("it is initialized") {
+                Then("it exposes a uiState") {
+                    viewModel.uiState.test { awaitItem() }
+                }
+            }
 
-                        Then("uiState should be updated with the new query") {
+            When("a valid search query is set") {
+                withData(
+                    SearchState(query = "name", type = SearchType.NAME),
+                    SearchState(query = "ingredient", type = SearchType.INGREDIENT),
+                ) { searchState ->
+                    val query = searchState.toDrinkQuery()
+                    viewModel.onSearchTypeChanged(searchState.type)
+                    viewModel.onSearchQueryChanged(searchState.query)
+
+                    // wait until searchState has the query before triggering search
+                    suspend fun ReceiveTurbine<DrinkListUiState>.search() {
+                        awaitUntil { it.searchState == searchState }
+                        viewModel.onSearch()
+                    }
+
+                    Then("uiState is updated with the new query") {
+                        viewModel.uiState.test { awaitUntil { it.searchState == searchState } }
+                    }
+
+                    And("the search succeeds") {
+                        mockGetDrinks(query, Result.success(drinks))
+
+                        Then("uiState is updated with the new data") {
                             viewModel.uiState.test {
-                                skipItems(1)
-                                awaitItem().searchState shouldBe searchState
-                            }
-                        }
-
-                        And("search is triggered") {
-                            And("it succeeds") {
-                                val expectedDrinks = List(3) { index ->
-                                    DrinkSummary(id = index, name = "name $index", imageUri = "image $index")
-                                }
-
-                                coEvery { getDrinks(searchState.toDrinkQuery()) } returns Result.success(expectedDrinks)
-
-                                Then("uiState should be updated with the new data") {
-                                    viewModel.uiState.test {
-                                        skipItems(2) // initial emissions
-                                        viewModel.onSearch()
-                                        awaitItem().isLoading shouldBe true
-
-                                        val successState = awaitItem()
-                                        successState.isLoading shouldBe false
-                                        successState.drinkList shouldBe expectedDrinks.map { it.toUi() }
-                                    }
-                                }
-                            }
-
-                            And("it fails") {
-                                val exception = IllegalStateException("exception msg")
-
-                                coEvery { getDrinks(searchState.toDrinkQuery()) } returns Result.failure(exception)
-
-                                Then("uiState should be updated with empty data and error message") {
-                                    viewModel.uiState.test {
-                                        skipItems(2) // initial emissions
-                                        viewModel.onSearch()
-                                        awaitItem().isLoading shouldBe true
-
-                                        val errorState = awaitItem()
-                                        errorState.isLoading shouldBe false
-                                        errorState.drinkList.shouldBeEmpty()
-                                        errorState.message shouldContain exception.message!!
-
-                                        viewModel.onMessageShown()
-
-                                        val clearedState = awaitItem()
-                                        clearedState.message shouldBe null
-                                    }
-                                }
+                                search()
+                                awaitUntil { it.isLoading }
+                                awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }
+                                    .drinkList shouldBe drinks.map { it.toUi() }
                             }
                         }
                     }
-                }
 
-                And("searchType transitions occur") {
-                    val initialSearchType = viewModel.uiState.value.searchState.type
-                    val transitions = SearchType.entries.flatMap { from ->
-                        SearchType.entries.map { to -> from to to }
-                    }
+                    And("the search fails") {
+                        mockGetDrinks(query, Result.failure(IllegalStateException("exception msg")))
 
-                    transitions.forEach { (fromType, toType) ->
-                        When("changing searchType from $fromType to $toType") {
+                        Then("uiState has empty data and an error message") {
                             viewModel.uiState.test {
-                                awaitItem() // Consume initial emission
-
-                                viewModel.onSearchTypeChanged(fromType)
-                                if (fromType != initialSearchType) awaitItem().searchState.type shouldBe fromType
-
-                                viewModel.onSearchQueryChanged("search text")
-                                awaitItem().searchState.query shouldBe "search text"
-
-                                viewModel.onSearchTypeChanged(toType)
-
-                                if (fromType != toType) {
-                                    Then("uiState is updated accordingly") {
-                                        val updatedState = awaitItem().searchState
-                                        updatedState.type shouldBe toType
-                                        updatedState.query.shouldBeEmpty()
-                                    }
-                                } else {
-                                    Then("no changes occur") {
-                                        expectNoEvents()
-                                    }
-                                }
+                                search()
+                                awaitUntil { it.isLoading }
+                                val state = awaitUntil { !it.isLoading && it.message != null }
+                                state.drinkList.shouldBeEmpty()
+                                state.message?.message shouldBe UiText.StringResource(R.string.something_went_wrong)
                             }
                         }
-                    }
-                }
 
-                And("searchQuery transitions occur") {
-                    val queryPairs = listOf(
-                        "" to "new query",
-                        "old query" to "new query",
-                        "same query" to "same query",
-                        "" to "",
-                    )
-
-                    queryPairs.forEach { (fromQuery, toQuery) ->
-                        When("changing query from '$fromQuery' to '$toQuery'") {
+                        Then("uiMessage is cleared when the snackbar is dismissed") {
                             viewModel.uiState.test {
-                                awaitItem() // Consume initial emission
+                                search()
+                                awaitUntil { it.message != null }
 
-                                if (fromQuery.isNotEmpty()) {
-                                    viewModel.onSearchQueryChanged(fromQuery)
-                                    awaitItem().searchState.query shouldBe fromQuery
-                                }
-
-                                viewModel.onSearchQueryChanged(toQuery)
-
-                                if (fromQuery != toQuery) {
-                                    Then("uiState is updated with the new query") {
-                                        awaitItem().searchState.query shouldBe toQuery
-                                    }
-                                } else {
-                                    Then("no changes occur") {
-                                        expectNoEvents()
-                                    }
-                                }
+                                viewModel.onSnackBarResult(SnackbarResult.Dismissed)
+                                awaitUntil { it.message == null }
                             }
                         }
-                    }
-                }
 
-                When("onDetailSelected is called") {
-                    val drink = DrinkSummaryUiModel(id = 1)
-                    viewModel.onDetailSelected(drink)
+                        Then("uiMessage is cleared and the search is retried on action performed") {
+                            viewModel.uiState.test {
+                                search()
+                                awaitUntil { it.message != null }
 
-                    Then("navigator is invoked with the correct drink id") {
-                        verify { navigator.navigateToDetail(drinkId = drink.id) }
+                                mockGetDrinks(query, Result.success(drinks))
+                                viewModel.onSnackBarResult(SnackbarResult.ActionPerformed)
+
+                                val state = awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }
+                                state.message shouldBe null
+                                state.drinkList shouldBe drinks.map { it.toUi() }
+                            }
+                        }
                     }
                 }
             }
-        },
-    )
+
+            When("the search type changes") {
+                withData(
+                    nameFn = { (from, to) -> "from $from to $to" },
+                    SearchType.entries.flatMap { from -> SearchType.entries.map { to -> from to to } },
+                ) { (from, to) ->
+                    viewModel.onSearchTypeChanged(from)
+                    viewModel.onSearchQueryChanged("search text")
+
+                    viewModel.uiState.test {
+                        awaitUntil { it.searchState == SearchState(query = "search text", type = from) }
+
+                        viewModel.onSearchTypeChanged(to)
+
+                        if (from == to) {
+                            expectNoEvents()
+                        } else {
+                            awaitUntil { it.searchState.type == to }.searchState.query.shouldBeEmpty()
+                        }
+                    }
+                }
+            }
+
+            When("the search query changes") {
+                withData(
+                    nameFn = { (from, to) -> "from '$from' to '$to'" },
+                    listOf("" to "new query", "old query" to "new query", "same query" to "same query", "" to ""),
+                ) { (from, to) ->
+                    viewModel.onSearchQueryChanged(from)
+
+                    viewModel.uiState.test {
+                        awaitUntil { it.searchState.query == from }
+
+                        viewModel.onSearchQueryChanged(to)
+
+                        if (from == to) expectNoEvents() else awaitUntil { it.searchState.query == to }
+                    }
+                }
+            }
+
+            When("onDetailSelected is called") {
+                Then("navigator is invoked with the correct drink id") {
+                    val drink = DrinkSummaryUiModel(id = 1)
+                    viewModel.onDetailSelected(drink)
+                    verify(exactly = 1) { navigator.navigateToDetail(drinkId = drink.id) }
+                }
+            }
+        }
+    })

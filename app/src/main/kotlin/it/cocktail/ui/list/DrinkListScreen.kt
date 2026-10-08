@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
 import it.cocktail.core.ui.component.LoadingOverlay
 import it.cocktail.core.ui.component.SnackBarEffect
+import it.cocktail.core.ui.model.UiMessageResult
 import it.cocktail.ui.list.component.DrinkEmptyState
 import it.cocktail.ui.list.component.DrinkSearchBarSection
 import it.cocktail.ui.list.component.DrinkSummaryListItem
@@ -48,7 +49,7 @@ fun DrinkListScreen(
         uiState = uiState,
         modifier = modifier,
         onDrinkClicked = viewModel::onDetailSelected,
-        onMessageShown = viewModel::onMessageShown,
+        onMessageResult = viewModel::onSnackBarResult,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSearchTypeChanged = viewModel::onSearchTypeChanged,
         onSearch = viewModel::onSearch,
@@ -61,14 +62,14 @@ fun DrinkListScreen(
     uiState: DrinkListUiState,
     modifier: Modifier = Modifier,
     onDrinkClicked: (DrinkSummaryUiModel) -> Unit = {},
-    onMessageShown: () -> Unit = {},
+    onMessageResult: (UiMessageResult) -> Unit = {},
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTypeChanged: (SearchType) -> Unit = {},
     onSearch: () -> Unit = {},
 ) {
     val snackBarState = remember { SnackbarHostState() }
 
-    SnackBarEffect(snackBarState, uiState.message, onMessageShown)
+    SnackBarEffect(snackBarState, uiState.message?.asSnackBarVisuals(), onMessageResult)
 
     Scaffold(
         modifier = modifier,

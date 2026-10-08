@@ -21,7 +21,7 @@ class ProjectConfig : AbstractProjectConfig() {
     override val duplicateTestNameMode = DuplicateTestNameMode.Warn
     override val globalAssertSoftly = false
     override val isolationMode = IsolationMode.InstancePerLeaf
-    override val specExecutionMode = SpecExecutionMode.Concurrent
+    override val specExecutionMode = SpecExecutionMode.Sequential
     override val testExecutionMode = TestExecutionMode.Concurrent
 
     private val globalTestDispatcher = StandardTestDispatcher()

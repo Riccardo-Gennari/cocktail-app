@@ -1,6 +1,8 @@
 package it.cocktail.core.ui.component
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,15 +11,15 @@ import androidx.compose.runtime.rememberUpdatedState
 @Composable
 fun SnackBarEffect(
     snackBarState: SnackbarHostState,
-    message: String?,
-    onMessageShown: () -> Unit = {},
+    snackBarVisuals: SnackbarVisuals?,
+    onSnackBarResult: (SnackbarResult) -> Unit = {},
 ) {
-    val currentOnMessageShown by rememberUpdatedState(onMessageShown)
+    val currentOnSnackBarResult by rememberUpdatedState(onSnackBarResult)
 
-    LaunchedEffect(message) {
-        if (!message.isNullOrBlank()) {
-            snackBarState.showSnackbar(message)
-            currentOnMessageShown()
+    LaunchedEffect(snackBarVisuals) {
+        if (!snackBarVisuals?.message.isNullOrBlank()) {
+            val result = snackBarState.showSnackbar(snackBarVisuals)
+            currentOnSnackBarResult(result)
         }
     }
 }

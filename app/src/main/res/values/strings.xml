@@ -13,4 +13,6 @@
     <string name="glass">Glass</string>
     <string name="instructions">Instructions</string>
     <string name="ingredients">Ingredients</string>
+    <string name="something_went_wrong">Something went wrong. Please try again.</string>
+    <string name="retry">Retry</string>
 </resources>
