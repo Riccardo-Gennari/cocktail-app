@@ -15,17 +15,24 @@ class DefaultDrinkDetailRepository
         private val networkClient: CocktailNetworkClient,
         private val persistentStorage: PersistentStorage,
     ) : DrinkDetailRepository {
-        override suspend fun getDetail(id: Int): Result<DrinkDetail?> =
-            persistentStorage.getDrinkDetail(id).fold(
-                onSuccess = { storedDto ->
-                    if (storedDto != null) {
-                        Result.success(storedDto.toDomain())
-                    } else {
-                        fetchAndCacheNetworkDetail(id)
-                    }
-                },
-                onFailure = { fetchAndCacheNetworkDetail(id) },
-            )
+        override suspend fun getDetail(
+            id: Int,
+            forceRefresh: Boolean,
+        ): Result<DrinkDetail?> =
+            if (forceRefresh) {
+                fetchAndCacheNetworkDetail(id)
+            } else {
+                persistentStorage.getDrinkDetail(id).fold(
+                    onSuccess = { storedDto ->
+                        if (storedDto != null) {
+                            Result.success(storedDto.toDomain())
+                        } else {
+                            fetchAndCacheNetworkDetail(id)
+                        }
+                    },
+                    onFailure = { fetchAndCacheNetworkDetail(id) },
+                )
+            }
 
         private suspend fun fetchAndCacheNetworkDetail(id: Int): Result<DrinkDetail?> =
             networkClient

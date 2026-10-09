@@ -10,6 +10,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
+import it.cocktail.core.common.log.Logger
+import it.cocktail.core.common.log.logTag
 import it.cocktail.core.common.util.runCatchingCancelable
 import it.cocktail.data.datasource.network.dto.DrinkDetailResponseNetworkDto
 import it.cocktail.data.datasource.network.dto.DrinksResponseNetworkDto
@@ -22,14 +24,17 @@ import kotlin.time.Duration.Companion.seconds
 class KtorCocktailNetworkClient(
     apiKey: String,
     engine: HttpClientEngine = defaultEngine(),
+    private val log: Logger,
     timeout: Duration = defaultTimeout,
 ) : CocktailNetworkClient {
     @Inject
     constructor(
         @Named("cocktailApiKey") apiKey: String,
+        log: Logger,
     ) : this(
         apiKey,
         engine = defaultEngine(),
+        log = log,
         timeout = defaultTimeout,
     )
 
@@ -55,6 +60,7 @@ class KtorCocktailNetworkClient(
 
     override suspend fun getDrinkDetail(id: Int): Result<DrinkDetailResponseNetworkDto?> =
         runCatchingCancelable {
+            log.debug(TAG, "fetching drink detail for id: $id")
             client
                 .get("$baseUrl/lookup.php") { parameter("i", id) }
                 .body<DrinkDetailResponseNetworkDto>()
@@ -62,6 +68,7 @@ class KtorCocktailNetworkClient(
 
     override suspend fun searchByIngredient(ingredient: String): Result<DrinksResponseNetworkDto> =
         runCatchingCancelable {
+            log.debug(TAG, "fetching drinks for ingredient: $ingredient")
             client
                 .get("$baseUrl/filter.php") { parameter("i", ingredient) }
                 .body<DrinksResponseNetworkDto>()
@@ -69,6 +76,7 @@ class KtorCocktailNetworkClient(
 
     override suspend fun searchByName(name: String): Result<DrinksResponseNetworkDto> =
         runCatchingCancelable {
+            log.debug(TAG, "fetching drinks for name: $name")
             client
                 .get("$baseUrl/search.php") { parameter("s", name) }
                 .body<DrinksResponseNetworkDto>()
@@ -76,6 +84,8 @@ class KtorCocktailNetworkClient(
 
     companion object {
         val defaultTimeout = 30.seconds
+
+        val TAG = KtorCocktailNetworkClient::class.logTag()
 
         fun defaultEngine(): HttpClientEngine =
             OkHttpEngine(

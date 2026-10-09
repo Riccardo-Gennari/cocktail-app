@@ -1,14 +1,10 @@
 package it.cocktail.ui.list
 
-import androidx.compose.material3.SnackbarResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import it.cocktail.R
 import it.cocktail.core.common.log.Logger
-import it.cocktail.core.ui.model.UiMessage
-import it.cocktail.core.ui.model.UiMessageDuration
-import it.cocktail.core.ui.model.UiText
+import it.cocktail.core.common.log.logTag
 import it.cocktail.core.ui.util.LoadingStateManager
 import it.cocktail.core.ui.util.launchWhileLoading
 import it.cocktail.domain.usecase.GetLastDrinksUseCase
@@ -39,19 +35,19 @@ class DrinkListViewModel
     ) : ViewModel() {
         private val drinksFlow = MutableStateFlow<List<DrinkSummaryUiModel>>(emptyList())
         private val loadingState = LoadingStateManager()
-        private val messageFlow = MutableStateFlow<UiMessage?>(null)
+        private val isErrorFlow = MutableStateFlow(false)
         private val searchStateFlow = MutableStateFlow(SearchState())
 
         val uiState: StateFlow<DrinkListUiState> = combine(
             drinksFlow,
             loadingState.isLoading,
-            messageFlow,
+            isErrorFlow,
             searchStateFlow,
-        ) { drinks, isLoading, message, searchState ->
+        ) { drinks, isLoading, isError, searchState ->
             DrinkListUiState(
                 drinkList = drinks,
                 isLoading = isLoading,
-                message = message,
+                isError = isError,
                 searchState = searchState,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), DrinkListUiState())
@@ -65,27 +61,18 @@ class DrinkListViewModel
             }
         }
 
-        fun onSnackBarResult(result: SnackbarResult) {
-            messageFlow.value = null
-            if (result == SnackbarResult.ActionPerformed) {
-                onSearch()
-            }
-        }
+        fun onRefresh() = onSearch()
 
         fun onSearch() {
+            isErrorFlow.value = false
             viewModelScope.launchWhileLoading(loadingState) {
                 searchDrinks(query = searchStateFlow.value.toDrinkQuery()).fold(
                     onSuccess = {
                         drinksFlow.value = it.map { drink -> drink.toUi() }
-                        messageFlow.value = null
                     },
                     onFailure = {
                         log.debug(TAG, "Error fetching drink list", it)
-                        messageFlow.value = UiMessage(
-                            message = UiText.StringResource(resId = R.string.something_went_wrong),
-                            actionLabel = UiText.StringResource(resId = R.string.retry),
-                            duration = UiMessageDuration.Long,
-                        )
+                        isErrorFlow.value = true
                         drinksFlow.value = emptyList()
                     },
                 )
@@ -105,6 +92,6 @@ class DrinkListViewModel
         fun onDetailSelected(drink: DrinkSummaryUiModel) = navigator.navigateToDetail(drinkId = drink.id)
 
         companion object {
-            private val TAG = DrinkListViewModel::class.simpleName.orEmpty()
+            private val TAG = DrinkListViewModel::class.logTag()
         }
     }

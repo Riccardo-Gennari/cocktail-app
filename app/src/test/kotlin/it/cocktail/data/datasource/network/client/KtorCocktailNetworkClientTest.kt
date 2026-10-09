@@ -8,6 +8,7 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.mockk.mockk
 import it.cocktail.data.datasource.network.dto.DrinkDetailNetworkDto
 import it.cocktail.data.datasource.network.dto.DrinkDetailResponseNetworkDto
 import it.cocktail.data.datasource.network.dto.DrinkSummaryNetworkDto
@@ -111,6 +112,7 @@ class KtorCocktailNetworkClientTest :
                     headers = headersOf(HttpHeaders.ContentType, "application/json"),
                 )
             },
+            log = mockk(relaxed = true),
         )
 
         val ServerErrorClient = KtorCocktailNetworkClient(
@@ -122,6 +124,7 @@ class KtorCocktailNetworkClientTest :
                     headers = headersOf(HttpHeaders.ContentType, "text/plain"),
                 )
             },
+            log = mockk(relaxed = true),
         )
 
         fun successClient(json: String) =
@@ -134,6 +137,7 @@ class KtorCocktailNetworkClientTest :
                         headers = headersOf(HttpHeaders.ContentType, "application/json"),
                     )
                 },
+                log = mockk(relaxed = true),
             )
 
         inline fun <reified T> successClientDto(dto: T) = successClient(Json.encodeToString(dto))

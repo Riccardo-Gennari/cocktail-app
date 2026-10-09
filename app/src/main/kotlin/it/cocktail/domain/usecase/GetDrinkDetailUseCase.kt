@@ -9,5 +9,8 @@ class GetDrinkDetailUseCase
     constructor(
         private val repository: DrinkDetailRepository,
     ) {
-        suspend operator fun invoke(id: Int): Result<DrinkDetail?> = repository.getDetail(id)
+        suspend operator fun invoke(
+            id: Int,
+            forceRefresh: Boolean = false,
+        ): Result<DrinkDetail?> = repository.getDetail(id, forceRefresh)
     }

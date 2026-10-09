@@ -44,7 +44,7 @@ class DefaultDrinkDetailRepositoryTest :
             val persistentStorage = mockk<PersistentStorage>()
             val repository = DefaultDrinkDetailRepository(networkClient, persistentStorage)
 
-            When("getDetail is triggered") {
+            When("getDetail is triggered without forceRefresh") {
                 And("cache hit occurs") {
                     coEvery { persistentStorage.getDrinkDetail(dtoId) } returns Result.success(localDto)
 
@@ -86,6 +86,21 @@ class DefaultDrinkDetailRepositoryTest :
                         val result = repository.getDetail(dtoId)
                         result.isFailure shouldBe true
                         result.exceptionOrNull() shouldBe exception
+                    }
+                }
+            }
+
+            When("getDetail is triggered with forceRefresh = true") {
+                And("network call succeeds") {
+                    coEvery { networkClient.getDrinkDetail(dtoId) } returns Result.success(expectedNetworkDto)
+                    coEvery { persistentStorage.storeDrinkDetail(any()) } returns Result.success(Unit)
+
+                    Then("it bypasses cache, fetches from network and updates cache") {
+                        val result = repository.getDetail(dtoId, forceRefresh = true)
+                        result.isSuccess shouldBe true
+                        result.getOrThrow() shouldBe expectedDomainDrink
+                        coVerify(exactly = 0) { persistentStorage.getDrinkDetail(any()) }
+                        coVerify(exactly = 1) { networkClient.getDrinkDetail(dtoId) }
                     }
                 }
             }

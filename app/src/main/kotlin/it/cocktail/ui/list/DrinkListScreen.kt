@@ -1,6 +1,7 @@
 package it.cocktail.ui.list
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,12 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
-import it.cocktail.core.ui.component.LoadingOverlay
-import it.cocktail.core.ui.component.SnackBarEffect
-import it.cocktail.core.ui.model.UiMessageResult
+import it.cocktail.core.ui.component.PullToRefreshBoxWithLoadingOverlay
 import it.cocktail.ui.list.component.DrinkEmptyState
 import it.cocktail.ui.list.component.DrinkSearchBarSection
 import it.cocktail.ui.list.component.DrinkSummaryListItem
+import it.cocktail.ui.list.component.ErrorSnackBarEffect
 import it.cocktail.ui.list.model.DrinkListUiState
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
 import it.cocktail.ui.list.model.SearchType
@@ -49,7 +49,7 @@ fun DrinkListScreen(
         uiState = uiState,
         modifier = modifier,
         onDrinkClicked = viewModel::onDetailSelected,
-        onMessageResult = viewModel::onSnackBarResult,
+        onRefresh = viewModel::onRefresh,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSearchTypeChanged = viewModel::onSearchTypeChanged,
         onSearch = viewModel::onSearch,
@@ -62,40 +62,42 @@ fun DrinkListScreen(
     uiState: DrinkListUiState,
     modifier: Modifier = Modifier,
     onDrinkClicked: (DrinkSummaryUiModel) -> Unit = {},
-    onMessageResult: (UiMessageResult) -> Unit = {},
+    onRefresh: () -> Unit = {},
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTypeChanged: (SearchType) -> Unit = {},
     onSearch: () -> Unit = {},
 ) {
     val snackBarState = remember { SnackbarHostState() }
 
-    SnackBarEffect(snackBarState, uiState.message?.asSnackBarVisuals(), onMessageResult)
+    ErrorSnackBarEffect(snackBarState, uiState.isError, onRefresh)
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarState) },
-    ) { scaffoldPadding ->
-        LoadingOverlay(
-            uiState.isLoading,
-            modifier = Modifier.padding(scaffoldPadding),
-        ) {
+    PullToRefreshBoxWithLoadingOverlay(
+        isLoading = uiState.isLoading,
+        onRefresh = onSearch,
+    ) {
+        Scaffold(
+            modifier = modifier,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(id = R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                )
+            },
+            snackbarHost = { SnackbarHost(hostState = snackBarState) },
+        ) { scaffoldPadding ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(scaffoldPadding),
             ) {
                 DrinkSearchBarSection(
                     searchState = uiState.searchState,
@@ -107,16 +109,29 @@ fun DrinkListScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
 
-                if (uiState.drinkList.isEmpty() && !uiState.isLoading) {
-                    DrinkEmptyState(modifier = Modifier.padding(top = 16.dp))
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    ) {
+                val isEmptyState = remember(uiState.drinkList, uiState.isLoading) {
+                    uiState.drinkList.isEmpty() && !uiState.isLoading
+                }
+
+                LazyColumn(
+                    contentPadding = PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    if (isEmptyState) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                DrinkEmptyState()
+                            }
+                        }
+                    } else {
                         items(items = uiState.drinkList, key = { it.id }) { drink ->
                             DrinkSummaryListItem(drink, modifier = Modifier.animateItem()) {
                                 onDrinkClicked(drink)

@@ -1,6 +1,5 @@
 package it.cocktail.ui.list
 
-import androidx.compose.material3.SnackbarResult
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import io.kotest.core.spec.style.BehaviorSpec
@@ -11,9 +10,7 @@ import io.kotest.matchers.string.shouldBeEmpty
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
-import it.cocktail.R
 import it.cocktail.core.common.log.Logger
-import it.cocktail.core.ui.model.UiText
 import it.cocktail.domain.model.DrinkQuery
 import it.cocktail.domain.model.DrinkSummary
 import it.cocktail.domain.usecase.GetLastDrinksUseCase
@@ -105,36 +102,26 @@ class DrinkListViewModelTest :
                     And("the search fails") {
                         mockSearchDrinks(query, Result.failure(IllegalStateException("exception msg")))
 
-                        Then("uiState has empty data and an error message") {
+                        Then("uiState has empty data and an error state") {
                             viewModel.uiState.test {
                                 search()
                                 awaitUntil { it.isLoading }
-                                val state = awaitUntil { !it.isLoading && it.message != null }
+                                val state = awaitUntil { !it.isLoading && it.isError }
                                 state.drinkList.shouldBeEmpty()
-                                state.message?.message shouldBe UiText.StringResource(R.string.something_went_wrong)
+                                state.isError shouldBe true
                             }
                         }
 
-                        Then("uiMessage is cleared when the snackbar is dismissed") {
+                        Then("on refresh, errorState is cleared and drinks fetched") {
                             viewModel.uiState.test {
                                 search()
-                                awaitUntil { it.message != null }
-
-                                viewModel.onSnackBarResult(SnackbarResult.Dismissed)
-                                awaitUntil { it.message == null }
-                            }
-                        }
-
-                        Then("uiMessage is cleared and the search is retried on action performed") {
-                            viewModel.uiState.test {
-                                search()
-                                awaitUntil { it.message != null }
+                                awaitUntil { it.isError }
 
                                 mockSearchDrinks(query, Result.success(drinks))
-                                viewModel.onSnackBarResult(SnackbarResult.ActionPerformed)
+                                viewModel.onRefresh()
 
                                 val state = awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }
-                                state.message shouldBe null
+                                state.isError shouldBe false
                                 state.drinkList shouldBe drinks.map { it.toUi() }
                             }
                         }

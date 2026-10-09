@@ -1,6 +1,5 @@
 package it.cocktail.ui.detail
 
-import androidx.compose.material3.SnackbarResult
 import app.cash.turbine.test
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -8,9 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
-import it.cocktail.R
 import it.cocktail.core.common.log.Logger
-import it.cocktail.core.ui.model.UiText
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.usecase.GetDrinkDetailUseCase
 import it.cocktail.ui.detail.mapper.toUi
@@ -28,9 +25,11 @@ class DrinkDetailViewModelTest :
 
             fun createViewModel() = DrinkDetailViewModel(drinkId = expectedDrink.id, getDetailUseCase, log, navigator)
 
-            fun setupGetDetail(): CompletableDeferred<Result<DrinkDetail>> {
+            fun setupGetDetail(forceRefresh: Boolean = false): CompletableDeferred<Result<DrinkDetail>> {
                 val deferred = CompletableDeferred<Result<DrinkDetail>>()
-                coEvery { getDetailUseCase(id = expectedDrink.id) } coAnswers { deferred.await() }
+                coEvery {
+                    getDetailUseCase(id = expectedDrink.id, forceRefresh = forceRefresh)
+                } coAnswers { deferred.await() }
                 return deferred
             }
 
@@ -38,7 +37,7 @@ class DrinkDetailViewModelTest :
 
             When("fetching drink detail succeeds") {
                 Then("uiState emits loading then success state") {
-                    val fetch = setupGetDetail()
+                    val fetch = setupGetDetail(forceRefresh = false)
 
                     createViewModel().uiState.test {
                         awaitUntil { it.isLoading }
@@ -47,58 +46,45 @@ class DrinkDetailViewModelTest :
                         val state = awaitUntil { !it.isLoading && it.drinkDetail != null }
                         state.drinkDetail shouldBe expectedDrink.toUi()
                     }
-                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id) }
+                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id, forceRefresh = false) }
                 }
             }
 
             When("fetching drink detail fails") {
                 Then("uiState emits loading then error state") {
-                    val fetch = setupGetDetail()
+                    val fetch = setupGetDetail(forceRefresh = false)
 
                     createViewModel().uiState.test {
                         awaitUntil { it.isLoading }
                         fetch.complete(failure)
 
-                        val state = awaitUntil { !it.isLoading && it.message != null }
+                        val state = awaitUntil { !it.isLoading && it.isError }
                         state.drinkDetail shouldBe null
-                        state.message?.message shouldBe UiText.StringResource(R.string.something_went_wrong)
+                        state.isError shouldBe true
                     }
-                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id) }
+                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id, forceRefresh = false) }
                 }
 
-                Then("uiMessage is cleared when snackBarResult is dismissed") {
-                    val fetch = setupGetDetail()
+                Then("error is cleared and fetch is retried with forceRefresh = true on refresh") {
+                    val fetch = setupGetDetail(forceRefresh = false)
                     val viewModel = createViewModel()
 
                     viewModel.uiState.test {
                         awaitUntil { it.isLoading }
                         fetch.complete(failure)
-                        awaitUntil { !it.isLoading && it.message != null }
+                        awaitUntil { !it.isLoading && it.isError }
 
-                        viewModel.onMessageResult(SnackbarResult.Dismissed)
-                        awaitUntil { it.message == null }
-                    }
-                }
+                        val retry = setupGetDetail(forceRefresh = true)
+                        viewModel.onRefresh()
 
-                Then("uiMessage is cleared and fetch is retried when snackBarResult is action performed") {
-                    val fetch = setupGetDetail()
-                    val viewModel = createViewModel()
-
-                    viewModel.uiState.test {
-                        awaitUntil { it.isLoading }
-                        fetch.complete(failure)
-                        awaitUntil { !it.isLoading && it.message != null }
-
-                        val retry = setupGetDetail()
-                        viewModel.onMessageResult(SnackbarResult.ActionPerformed)
-
-                        awaitUntil { it.isLoading && it.message == null }
+                        awaitUntil { it.isLoading && !it.isError }
                         retry.complete(Result.success(expectedDrink))
 
                         val state = awaitUntil { !it.isLoading && it.drinkDetail != null }
                         state.drinkDetail shouldBe expectedDrink.toUi()
                     }
-                    coVerify(exactly = 2) { getDetailUseCase(id = expectedDrink.id) }
+                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id, forceRefresh = false) }
+                    coVerify(exactly = 1) { getDetailUseCase(id = expectedDrink.id, forceRefresh = true) }
                 }
             }
 

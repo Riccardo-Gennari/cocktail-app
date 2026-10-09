@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,14 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,11 +27,10 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
-import it.cocktail.core.ui.component.LoadingOverlay
-import it.cocktail.core.ui.component.SnackBarEffect
-import it.cocktail.core.ui.model.UiMessageResult
+import it.cocktail.core.ui.component.PullToRefreshBoxWithLoadingOverlay
 import it.cocktail.ui.detail.component.DrinkCoverImage
 import it.cocktail.ui.detail.component.DrinkDetailInfoChips
+import it.cocktail.ui.detail.component.DrinkErrorState
 import it.cocktail.ui.detail.component.DrinkIngredients
 import it.cocktail.ui.detail.component.DrinkInstructions
 import it.cocktail.ui.detail.model.DrinkDetailUiModel
@@ -49,8 +45,8 @@ fun DrinkDetailScreen(
     DrinkDetailScreen(
         uiState = uiState,
         modifier = modifier,
-        onMessageResult = viewModel::onMessageResult,
         onNavigateBack = viewModel::onNavigateBack,
+        onRefresh = viewModel::onRefresh,
     )
 }
 
@@ -60,46 +56,53 @@ fun DrinkDetailScreen(
     uiState: DrinkDetailUiState,
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit = {},
-    onMessageResult: (UiMessageResult) -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
-    val snackBarState = remember { SnackbarHostState() }
 
     BackHandler(onBack = onNavigateBack)
-    SnackBarEffect(snackBarState, uiState.message?.asSnackBarVisuals(), onMessageResult)
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = uiState.drinkDetail?.name.orEmpty(),
-                        style = typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+    PullToRefreshBoxWithLoadingOverlay(
+        isLoading = uiState.isLoading,
+        onRefresh = onRefresh,
+    ) {
+        Scaffold(
+            modifier = modifier,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = uiState.drinkDetail?.name.orEmpty(),
+                            style = typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.surface),
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(painterResource(R.drawable.baseline_chevron_left_24), null)
+                        }
+                    },
+                )
+            },
+        ) { scaffoldPadding ->
+            when {
+                uiState.isError -> {
+                    DrinkErrorState(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(scaffoldPadding),
+                        onRetry = onRefresh,
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.surface),
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(painterResource(R.drawable.baseline_chevron_left_24), null)
-                    }
-                },
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarState) { snackBarData ->
-                Snackbar(snackBarData)
-            }
-        },
-    ) { scaffoldPadding ->
-        LoadingOverlay(
-            uiState.isLoading,
-            modifier = Modifier.padding(scaffoldPadding),
-        ) {
-            uiState.drinkDetail?.let { drink ->
-                DrinkDetailContent(drink = drink)
+                }
+
+                uiState.drinkDetail != null -> {
+                    DrinkDetailContent(
+                        drink = uiState.drinkDetail,
+                        modifier = Modifier.padding(scaffoldPadding),
+                    )
+                }
             }
         }
     }
@@ -140,9 +143,7 @@ private fun DrinkDetailContent(
 @Composable
 private fun DrinkDetailScreenPreview() {
     DrinkDetailScreen(
-        uiState = DrinkDetailUiState(
-            drinkDetail = DrinkDetailUiModel.sample(),
-        ),
+        uiState = DrinkDetailUiState(drinkDetail = DrinkDetailUiModel.sample()),
     )
 }
 
@@ -150,9 +151,14 @@ private fun DrinkDetailScreenPreview() {
 @Composable
 private fun DrinkDetailScreenLoadingPreview() {
     DrinkDetailScreen(
-        uiState = DrinkDetailUiState(
-            isLoading = true,
-            drinkDetail = null,
-        ),
+        uiState = DrinkDetailUiState(isLoading = true),
+    )
+}
+
+@Preview
+@Composable
+private fun DrinkDetailScreenErrorPreview() {
+    DrinkDetailScreen(
+        uiState = DrinkDetailUiState(isError = true),
     )
 }
