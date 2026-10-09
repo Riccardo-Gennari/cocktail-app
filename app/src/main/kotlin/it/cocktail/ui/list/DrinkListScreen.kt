@@ -11,19 +11,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -31,10 +26,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
 import it.cocktail.core.ui.component.PullToRefreshBoxWithLoadingOverlay
+import it.cocktail.core.ui.component.StyleDefaults
+import it.cocktail.core.ui.model.UiError
+import it.cocktail.ui.detail.component.DrinkErrorState
 import it.cocktail.ui.list.component.DrinkEmptyState
 import it.cocktail.ui.list.component.DrinkSearchBarSection
 import it.cocktail.ui.list.component.DrinkSummaryListItem
-import it.cocktail.ui.list.component.ErrorSnackBarEffect
 import it.cocktail.ui.list.model.DrinkListUiState
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
 import it.cocktail.ui.list.model.SearchType
@@ -67,10 +64,6 @@ fun DrinkListScreen(
     onSearchTypeChanged: (SearchType) -> Unit = {},
     onSearch: () -> Unit = {},
 ) {
-    val snackBarState = remember { SnackbarHostState() }
-
-    ErrorSnackBarEffect(snackBarState, uiState.isError, onRefresh)
-
     PullToRefreshBoxWithLoadingOverlay(
         isLoading = uiState.isLoading,
         onRefresh = onSearch,
@@ -82,16 +75,12 @@ fun DrinkListScreen(
                     title = {
                         Text(
                             text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
+                            style = StyleDefaults.topAppBarTitleStyle,
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
+                    colors = StyleDefaults.topAppBarColors,
                 )
             },
-            snackbarHost = { SnackbarHost(hostState = snackBarState) },
         ) { scaffoldPadding ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -116,25 +105,39 @@ fun DrinkListScreen(
                 LazyColumn(
                     contentPadding = PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
-                    if (isEmptyState) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .animateItem(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                DrinkEmptyState()
+                    when {
+                        uiState.error != null -> {
+                            item {
+                                Box(
+                                    contentAlignment = Alignment.TopCenter,
+                                    modifier = Modifier.fillMaxWidth().animateItem(),
+                                ) {
+                                    DrinkErrorState(
+                                        error = uiState.error,
+                                        onRetry = onRefresh,
+                                    )
+                                }
                             }
                         }
-                    } else {
-                        items(items = uiState.drinkList, key = { it.id }) { drink ->
-                            DrinkSummaryListItem(drink, modifier = Modifier.animateItem()) {
-                                onDrinkClicked(drink)
+
+                        isEmptyState -> {
+                            item {
+                                Box(
+                                    contentAlignment = Alignment.TopCenter,
+                                    modifier = Modifier.fillMaxWidth().animateItem(),
+                                ) {
+                                    DrinkEmptyState()
+                                }
+                            }
+                        }
+
+                        else -> {
+                            items(items = uiState.drinkList, key = { it.id }) { drink ->
+                                DrinkSummaryListItem(drink, modifier = Modifier.animateItem()) {
+                                    onDrinkClicked(drink)
+                                }
                             }
                         }
                     }
@@ -171,6 +174,26 @@ private fun DrinkListScreenEmptyPreview() {
     DrinkListScreen(
         uiState = DrinkListUiState(
             drinkList = emptyList(),
+        ),
+    )
+}
+
+@Preview
+@Composable
+private fun DrinkListScreenErrorPreview() {
+    DrinkListScreen(
+        uiState = DrinkListUiState(
+            error = UiError.Generic,
+        ),
+    )
+}
+
+@Preview
+@Composable
+private fun DrinkListScreenNoConnectionPreview() {
+    DrinkListScreen(
+        uiState = DrinkListUiState(
+            error = UiError.NoConnection,
         ),
     )
 }

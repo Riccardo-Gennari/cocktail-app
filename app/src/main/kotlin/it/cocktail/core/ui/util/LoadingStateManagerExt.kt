@@ -7,14 +7,6 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-inline fun <R> LoadingStateManager.whileLoading(block: () -> R): R =
-    try {
-        onLoadingStarted()
-        block()
-    } finally {
-        onLoadingStopped()
-    }
-
 fun CoroutineScope.launchWhileLoading(
     loadingState: LoadingStateManager,
     context: CoroutineContext = EmptyCoroutineContext,

@@ -9,18 +9,18 @@ import it.cocktail.ui.list.model.SearchType
 class SearchStateMapperTest :
     BehaviorSpec({
         Given("an instance") {
-            When("SearchType is ${SearchType.NAME}") {
+            When("SearchType is ${SearchType.Name}") {
                 val query = "name"
-                val state = SearchState(query = query, type = SearchType.NAME)
+                val state = SearchState(query = query, type = SearchType.Name)
 
                 Then("toDrinkQuery should return DrinkQuery.ByName") {
                     state.toDrinkQuery() shouldBe DrinkQuery.ByName(name = query)
                 }
             }
 
-            When("SearchType is ${SearchType.INGREDIENT}") {
+            When("SearchType is ${SearchType.Ingredient}") {
                 val query = "ingredient"
-                val state = SearchState(query = query, type = SearchType.INGREDIENT)
+                val state = SearchState(query = query, type = SearchType.Ingredient)
 
                 Then("toDrinkQuery should return DrinkQuery.ByIngredient") {
                     state.toDrinkQuery() shouldBe DrinkQuery.ByIngredient(ingredient = query)

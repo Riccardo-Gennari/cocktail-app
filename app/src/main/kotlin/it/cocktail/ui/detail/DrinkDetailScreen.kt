@@ -1,11 +1,16 @@
 package it.cocktail.ui.detail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,21 +18,21 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import it.cocktail.R
 import it.cocktail.core.ui.component.PullToRefreshBoxWithLoadingOverlay
+import it.cocktail.core.ui.component.StyleDefaults
+import it.cocktail.core.ui.model.UiError
 import it.cocktail.ui.detail.component.DrinkCoverImage
 import it.cocktail.ui.detail.component.DrinkDetailInfoChips
 import it.cocktail.ui.detail.component.DrinkErrorState
@@ -58,9 +63,6 @@ fun DrinkDetailScreen(
     onNavigateBack: () -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
-    val colors = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
-
     BackHandler(onBack = onNavigateBack)
 
     PullToRefreshBoxWithLoadingOverlay(
@@ -74,11 +76,10 @@ fun DrinkDetailScreen(
                     title = {
                         Text(
                             text = uiState.drinkDetail?.name.orEmpty(),
-                            style = typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
+                            style = StyleDefaults.topAppBarTitleStyle,
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.surface),
+                    colors = StyleDefaults.topAppBarColors,
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(painterResource(R.drawable.baseline_chevron_left_24), null)
@@ -87,22 +88,30 @@ fun DrinkDetailScreen(
                 )
             },
         ) { scaffoldPadding ->
-            when {
-                uiState.isError -> {
+            AnimatedContent(
+                targetState = uiState.error,
+                transitionSpec = { fadeIn(tween()) togetherWith fadeOut(tween()) },
+            ) { error ->
+                if (error == null) return@AnimatedContent
+                Box(
+                    contentAlignment = Alignment.TopCenter,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(scaffoldPadding)
+                        .verticalScroll(rememberScrollState()), // for swipe to refresh gestures to work
+                ) {
                     DrinkErrorState(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(scaffoldPadding),
+                        error = error,
                         onRetry = onRefresh,
                     )
                 }
+            }
 
-                uiState.drinkDetail != null -> {
-                    DrinkDetailContent(
-                        drink = uiState.drinkDetail,
-                        modifier = Modifier.padding(scaffoldPadding),
-                    )
-                }
+            if (uiState.drinkDetail != null) {
+                DrinkDetailContent(
+                    drink = uiState.drinkDetail,
+                    modifier = Modifier.padding(scaffoldPadding),
+                )
             }
         }
     }
@@ -159,6 +168,14 @@ private fun DrinkDetailScreenLoadingPreview() {
 @Composable
 private fun DrinkDetailScreenErrorPreview() {
     DrinkDetailScreen(
-        uiState = DrinkDetailUiState(isError = true),
+        uiState = DrinkDetailUiState(error = UiError.Generic),
+    )
+}
+
+@Preview
+@Composable
+private fun DrinkDetailScreenNoConnectionPreview() {
+    DrinkDetailScreen(
+        uiState = DrinkDetailUiState(error = UiError.NoConnection),
     )
 }

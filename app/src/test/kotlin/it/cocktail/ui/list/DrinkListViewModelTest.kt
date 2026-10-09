@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
 import it.cocktail.core.common.log.Logger
+import it.cocktail.core.ui.model.UiError
 import it.cocktail.domain.model.DrinkQuery
 import it.cocktail.domain.model.DrinkSummary
 import it.cocktail.domain.usecase.GetLastDrinksUseCase
@@ -24,6 +25,7 @@ import it.cocktail.ui.list.model.SearchType
 import it.cocktail.ui.list.navigation.DrinkListNavigator
 import it.cocktail.util.awaitUntil
 import kotlinx.coroutines.delay
+import java.net.UnknownHostException
 import kotlin.time.Duration.Companion.seconds
 
 class DrinkListViewModelTest :
@@ -69,8 +71,8 @@ class DrinkListViewModelTest :
 
             When("a valid search query is set") {
                 withData(
-                    SearchState(query = "name", type = SearchType.NAME),
-                    SearchState(query = "ingredient", type = SearchType.INGREDIENT),
+                    SearchState(query = "name", type = SearchType.Name),
+                    SearchState(query = "ingredient", type = SearchType.Ingredient),
                 ) { searchState ->
                     val query = searchState.toDrinkQuery()
                     viewModel.onSearchTypeChanged(searchState.type)
@@ -123,6 +125,16 @@ class DrinkListViewModelTest :
                                 val state = awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }
                                 state.isError shouldBe false
                                 state.drinkList shouldBe drinks.map { it.toUi() }
+                            }
+                        }
+
+                        Then("when network fails, error is ${UiError.NoConnection}") {
+                            viewModel.uiState.test {
+                                mockSearchDrinks(query, Result.failure(UnknownHostException("No host")))
+                                viewModel.onRefresh()
+
+                                val state = awaitUntil { !it.isLoading && it.isError }
+                                state.error shouldBe UiError.NoConnection
                             }
                         }
                     }

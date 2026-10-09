@@ -8,6 +8,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.cocktail.core.common.log.Logger
 import it.cocktail.core.common.log.logTag
+import it.cocktail.core.ui.model.UiError
+import it.cocktail.core.ui.model.toUiError
 import it.cocktail.core.ui.util.LoadingStateManager
 import it.cocktail.core.ui.util.launchWhileLoading
 import it.cocktail.domain.usecase.GetDrinkDetailUseCase
@@ -37,17 +39,17 @@ class DrinkDetailViewModel
 
         private val detailFlow = MutableStateFlow<DrinkDetailUiModel?>(null)
         private val loadingState = LoadingStateManager()
-        private val errorFlow = MutableStateFlow(false)
+        private val errorFlow = MutableStateFlow<UiError?>(null)
 
         val uiState: StateFlow<DrinkDetailUiState> = combine(
             detailFlow,
-            loadingState.isLoading,
             errorFlow,
-        ) { drink, isLoading, message ->
+            loadingState.isLoading,
+        ) { drink, error, isLoading ->
             DrinkDetailUiState(
                 drinkDetail = drink,
+                error = error,
                 isLoading = isLoading,
-                isError = message,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), DrinkDetailUiState())
 
@@ -56,7 +58,7 @@ class DrinkDetailViewModel
         }
 
         fun onRefresh() {
-            errorFlow.value = false
+            errorFlow.value = null
             getDrinkDetail(drinkId, forceRefresh = true)
         }
 
@@ -70,11 +72,11 @@ class DrinkDetailViewModel
                 getDetail(drinkId, forceRefresh).fold(
                     onSuccess = {
                         detailFlow.value = it?.toUi()
-                        errorFlow.value = false
+                        errorFlow.value = null
                     },
                     onFailure = {
                         log.debug(TAG, "Error fetching drink detail", it)
-                        errorFlow.value = true
+                        errorFlow.value = it.toUiError()
                         detailFlow.value = null
                     },
                 )

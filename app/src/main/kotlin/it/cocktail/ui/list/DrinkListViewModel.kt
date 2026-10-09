@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.cocktail.core.common.log.Logger
 import it.cocktail.core.common.log.logTag
+import it.cocktail.core.ui.model.UiError
+import it.cocktail.core.ui.model.toUiError
 import it.cocktail.core.ui.util.LoadingStateManager
 import it.cocktail.core.ui.util.launchWhileLoading
 import it.cocktail.domain.usecase.GetLastDrinksUseCase
@@ -34,20 +36,20 @@ class DrinkListViewModel
         private val searchDrinks: SearchDrinksUseCase,
     ) : ViewModel() {
         private val drinksFlow = MutableStateFlow<List<DrinkSummaryUiModel>>(emptyList())
+        private val errorFlow = MutableStateFlow<UiError?>(null)
         private val loadingState = LoadingStateManager()
-        private val isErrorFlow = MutableStateFlow(false)
         private val searchStateFlow = MutableStateFlow(SearchState())
 
         val uiState: StateFlow<DrinkListUiState> = combine(
             drinksFlow,
+            errorFlow,
             loadingState.isLoading,
-            isErrorFlow,
             searchStateFlow,
-        ) { drinks, isLoading, isError, searchState ->
+        ) { drinks, error, isLoading, searchState ->
             DrinkListUiState(
                 drinkList = drinks,
+                error = error,
                 isLoading = isLoading,
-                isError = isError,
                 searchState = searchState,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), DrinkListUiState())
@@ -64,7 +66,7 @@ class DrinkListViewModel
         fun onRefresh() = onSearch()
 
         fun onSearch() {
-            isErrorFlow.value = false
+            errorFlow.value = null
             viewModelScope.launchWhileLoading(loadingState) {
                 searchDrinks(query = searchStateFlow.value.toDrinkQuery()).fold(
                     onSuccess = {
@@ -72,7 +74,7 @@ class DrinkListViewModel
                     },
                     onFailure = {
                         log.debug(TAG, "Error fetching drink list", it)
-                        isErrorFlow.value = true
+                        errorFlow.value = it.toUiError()
                         drinksFlow.value = emptyList()
                     },
                 )

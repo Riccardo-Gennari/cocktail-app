@@ -6,6 +6,6 @@ import it.cocktail.ui.list.model.SearchType
 
 fun SearchState.toDrinkQuery(): DrinkQuery =
     when (type) {
-        SearchType.NAME -> DrinkQuery.ByName(name = query)
-        SearchType.INGREDIENT -> DrinkQuery.ByIngredient(ingredient = query)
+        SearchType.Name -> DrinkQuery.ByName(name = query)
+        SearchType.Ingredient -> DrinkQuery.ByIngredient(ingredient = query)
     }

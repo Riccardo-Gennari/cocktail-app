@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -21,14 +22,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import it.cocktail.R
+import it.cocktail.core.ui.model.UiError
 
 @Composable
 fun DrinkErrorState(
+    error: UiError,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
+    val messageRes = remember(error) {
+        when (error) {
+            UiError.NoConnection -> R.string.no_internet_connection
+            UiError.Generic -> R.string.something_went_wrong
+        }
+    }
 
     Column(
         modifier = modifier.padding(8.dp),
@@ -50,7 +59,7 @@ fun DrinkErrorState(
         }
 
         Text(
-            text = stringResource(R.string.something_went_wrong),
+            text = stringResource(messageRes),
             style = typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = colors.onSurface,
@@ -66,5 +75,11 @@ fun DrinkErrorState(
 @Preview(showBackground = true)
 @Composable
 private fun DrinkErrorStatePreview() {
-    DrinkErrorState()
+    DrinkErrorState(error = UiError.Generic)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DrinkNoConnectionErrorStatePreview() {
+    DrinkErrorState(error = UiError.NoConnection)
 }

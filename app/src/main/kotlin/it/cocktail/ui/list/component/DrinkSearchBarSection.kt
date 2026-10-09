@@ -50,8 +50,8 @@ fun DrinkSearchBarSection(
             placeholder = {
                 Text(
                     when (searchState.type) {
-                        SearchType.INGREDIENT -> stringResource(R.string.search_cocktail_ingredient)
-                        SearchType.NAME -> stringResource(R.string.search_cocktail_name)
+                        SearchType.Ingredient -> stringResource(R.string.search_cocktail_ingredient)
+                        SearchType.Name -> stringResource(R.string.search_cocktail_name)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -92,18 +92,18 @@ fun DrinkSearchBarSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilterChip(
-                selected = searchState.type == SearchType.NAME,
-                onClick = { onSearchTypeChange(SearchType.NAME) },
+                selected = searchState.type == SearchType.Name,
+                onClick = { onSearchTypeChange(SearchType.Name) },
                 label = { Text(stringResource(R.string.name)) },
-                leadingIcon = chipLeadingIcon(searchState.type == SearchType.NAME),
+                leadingIcon = chipLeadingIcon(searchState.type == SearchType.Name),
                 shape = CircleShape,
             )
 
             FilterChip(
-                selected = searchState.type == SearchType.INGREDIENT,
-                onClick = { onSearchTypeChange(SearchType.INGREDIENT) },
+                selected = searchState.type == SearchType.Ingredient,
+                onClick = { onSearchTypeChange(SearchType.Ingredient) },
                 label = { Text(stringResource(R.string.ingredient)) },
-                leadingIcon = chipLeadingIcon(searchState.type == SearchType.INGREDIENT),
+                leadingIcon = chipLeadingIcon(searchState.type == SearchType.Ingredient),
                 shape = CircleShape,
             )
         }

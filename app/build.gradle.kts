@@ -74,18 +74,13 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             optimization.enable = true
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
     }
 }
 
