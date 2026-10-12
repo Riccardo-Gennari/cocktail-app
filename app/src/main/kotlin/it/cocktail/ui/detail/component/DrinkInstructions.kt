@@ -18,6 +18,9 @@ import it.cocktail.R
 import it.cocktail.core.ui.component.StyleDefaults
 import it.cocktail.ui.detail.model.DrinkDetailUiModel
 
+/**
+ * Shows the [instructions] wrapped in a [ElevatedCard] and preceded by a fixed section title.
+ */
 @Composable
 fun DrinkInstructions(
     instructions: String,

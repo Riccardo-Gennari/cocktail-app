@@ -8,6 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+/**
+ * Shows each tag in [tags] as a [SuggestionChip] inside a [Column].
+ *
+ * If [tags] could contain many elements, passing verticalScroll into the [modifier] chain is advisable.
+ */
 @Composable
 fun DrinkDetailInfoChips(
     tags: List<String>,

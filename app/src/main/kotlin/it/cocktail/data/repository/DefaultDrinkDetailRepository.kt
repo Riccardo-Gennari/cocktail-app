@@ -9,6 +9,12 @@ import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.repository.DrinkDetailRepository
 import javax.inject.Inject
 
+/**
+ * Implementation of [DrinkDetailRepository] using [CocktailNetworkClient] and [PersistentStorage] data sources.
+ *
+ * @param networkClient the network datasource
+ * @param persistentStorage the local datasource
+ */
 class DefaultDrinkDetailRepository
     @Inject
     constructor(
@@ -20,7 +26,7 @@ class DefaultDrinkDetailRepository
             forceRefresh: Boolean,
         ): Result<DrinkDetail?> =
             if (forceRefresh) {
-                fetchAndCacheNetworkDetail(id)
+                fetchAndCacheNetworkDetail(id) // ignore cached data
             } else {
                 persistentStorage.getDrinkDetail(id).fold(
                     onSuccess = { storedDto ->
@@ -40,6 +46,7 @@ class DefaultDrinkDetailRepository
                 .map { response -> response?.drinks?.firstOrNull()?.toDomain() }
                 .onSuccess { domainDrink ->
                     if (domainDrink != null) {
+                        // cache the result, enabling faster offline retrieval for later queries
                         persistentStorage.storeDrinkDetail(domainDrink.toLocalDto())
                     }
                 }

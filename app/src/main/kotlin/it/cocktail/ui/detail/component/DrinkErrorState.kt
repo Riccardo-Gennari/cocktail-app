@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import it.cocktail.R
 import it.cocktail.core.ui.model.UiError
 
+/**
+ * Shows an error message with retry button.
+ * Message depends on [error] type.
+ */
 @Composable
 fun DrinkErrorState(
     error: UiError,

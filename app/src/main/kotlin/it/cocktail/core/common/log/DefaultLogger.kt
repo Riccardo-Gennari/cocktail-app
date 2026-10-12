@@ -3,6 +3,11 @@ package it.cocktail.core.common.log
 import android.util.Log
 import javax.inject.Inject
 
+/**
+ * Implementation of [Logger] that delegates to [Log].
+ *
+ * Prefixes each tag with a global app tag.
+ */
 class DefaultLogger
     @Inject
     constructor() : Logger {

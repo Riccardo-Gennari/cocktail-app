@@ -3,8 +3,12 @@ package it.cocktail.data.datasource.local.dto
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
+import it.cocktail.domain.model.DrinkDetail
 import kotlinx.serialization.Serializable
 
+/**
+ * Local storage DTO of domain entity [DrinkDetail]
+ */
 @Serializable
 @Entity(tableName = "drink_details")
 data class DrinkDetailLocalDto(

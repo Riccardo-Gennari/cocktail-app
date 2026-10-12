@@ -4,6 +4,9 @@ import it.cocktail.domain.model.DrinkQuery
 import it.cocktail.ui.list.model.SearchState
 import it.cocktail.ui.list.model.SearchType
 
+/**
+ * Maps [SearchState] to a domain [DrinkQuery].
+ */
 fun SearchState.toDrinkQuery(): DrinkQuery =
     when (type) {
         SearchType.Name -> DrinkQuery.ByName(name = query)

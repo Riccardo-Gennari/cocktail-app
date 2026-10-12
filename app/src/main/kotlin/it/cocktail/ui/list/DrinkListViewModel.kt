@@ -26,6 +26,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
+/**
+ * [ViewModel] managing state and events for [DrinkListScreen].
+ *
+ * @param getLastDrinks Use case to fetch stored cocktail search history.
+ * @param log [Logger] for recording events.
+ * @param navigator Handles screen navigation events.
+ * @param searchDrinks Use case to search cocktails by name or ingredient.
+ */
 @HiltViewModel
 class DrinkListViewModel
     @Inject
@@ -40,6 +48,7 @@ class DrinkListViewModel
         private val loadingState = LoadingStateManager()
         private val searchStateFlow = MutableStateFlow(SearchState())
 
+        /** Provides a flow of [DrinkListUiState] snapshots for the UI to display. */
         val uiState: StateFlow<DrinkListUiState> = combine(
             drinksFlow,
             errorFlow,
@@ -63,8 +72,10 @@ class DrinkListViewModel
             }
         }
 
+        /** Refreshes current search query results. */
         fun onRefresh() = onSearch()
 
+        /** Searches for cocktails using the current search state. */
         fun onSearch() {
             errorFlow.value = null
             viewModelScope.launchWhileLoading(loadingState) {
@@ -81,16 +92,19 @@ class DrinkListViewModel
             }
         }
 
+        /** Updates the current [SearchType] */
         fun onSearchTypeChanged(searchType: SearchType) {
             if (searchStateFlow.value.type == searchType) return
             searchStateFlow.value = SearchState(query = "", type = searchType)
         }
 
+        /** Updates the current search query. */
         fun onSearchQueryChanged(query: String) {
             if (searchStateFlow.value.query == query) return
             searchStateFlow.update { it.copy(query = query) }
         }
 
+        /** Navigates to the detail screen for the selected [drink]. */
         fun onDetailSelected(drink: DrinkSummaryUiModel) = navigator.navigateToDetail(drinkId = drink.id)
 
         companion object {

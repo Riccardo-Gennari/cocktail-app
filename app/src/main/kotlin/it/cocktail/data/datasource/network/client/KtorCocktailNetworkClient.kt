@@ -21,6 +21,14 @@ import javax.inject.Named
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Implementation of [CocktailNetworkClient] that uses [HttpClient] for network communication.
+ *
+ * @param apiKey the CocktailDB API key use to authorize calls.
+ * @param engine the [HttpClientEngine] used for network communication.
+ * @param log the [Logger] used to log events.
+ * @param timeout the [Duration] after which a request with no response is considered failed.
+ */
 class KtorCocktailNetworkClient(
     apiKey: String,
     engine: HttpClientEngine = defaultEngine(),

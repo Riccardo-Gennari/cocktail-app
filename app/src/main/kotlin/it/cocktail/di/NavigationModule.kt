@@ -14,21 +14,42 @@ import it.cocktail.ui.list.navigation.DrinkListNavigator
 import it.cocktail.ui.list.navigation.DrinkListRoute
 import javax.inject.Named
 
+/**
+ * Hilt module providing instances related to navigation.
+ * Installed in [ActivityRetainedComponent] to follow the Activity lifecycle.
+ */
 @Module
 @InstallIn(ActivityRetainedComponent::class)
 abstract class NavigationModule {
+    /**
+     * Binds [Nav3Navigator] to the [DrinkDetailNavigator] interface.
+     *
+     * @param impl The [Nav3Navigator] implementation.
+     * @return The [DrinkDetailNavigator] abstraction.
+     */
     @Binds
     @ActivityRetainedScoped
     abstract fun bindDrinkDetailNavigator(impl: Nav3Navigator): DrinkDetailNavigator
 
+    /**
+     * Binds [Nav3Navigator] to the [DrinkListNavigator] interface.
+     *
+     * @param impl The [Nav3Navigator] implementation.
+     * @return The [DrinkListNavigator] abstraction.
+     */
     @Binds
     @ActivityRetainedScoped
     abstract fun bindDrinkListNavigator(impl: Nav3Navigator): DrinkListNavigator
 
     companion object {
+        /**
+         * Provides the activity-scoped backstack used to coordinate navigation in the whole app.
+         *
+         * @return The [NavBackStack] instance.
+         */
         @Provides
         @ActivityRetainedScoped
-        @Named("initialBackstack")
-        fun provideInitialBackstack(): NavBackStack<NavKey> = NavBackStack(DrinkListRoute)
+        @Named("navBackstack")
+        fun provideNavBackstack(): NavBackStack<NavKey> = NavBackStack(DrinkListRoute)
     }
 }

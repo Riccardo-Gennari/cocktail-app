@@ -7,6 +7,11 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+/**
+ * Represent different error types that ui can handle.
+ *
+ * Each [UiError] could trigger a different ui behavior (e.g. a different message to the user)
+ */
 enum class UiError {
     Generic,
     NoConnection,

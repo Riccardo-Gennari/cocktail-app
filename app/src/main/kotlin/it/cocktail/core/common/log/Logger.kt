@@ -1,5 +1,8 @@
 package it.cocktail.core.common.log
 
+/**
+ * Provides logging features for the app.
+ */
 interface Logger {
     fun debug(
         tag: String,

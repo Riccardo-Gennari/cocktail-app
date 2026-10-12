@@ -1,5 +1,6 @@
 package it.cocktail.ui.detail
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -41,6 +42,9 @@ import it.cocktail.ui.detail.component.DrinkInstructions
 import it.cocktail.ui.detail.model.DrinkDetailUiModel
 import it.cocktail.ui.detail.model.DrinkDetailUiState
 
+/**
+ * Entry point for the cocktail detail screen, wiring [DrinkDetailViewModel] state to [DrinkDetailScreen].
+ */
 @Composable
 fun DrinkDetailScreen(
     viewModel: DrinkDetailViewModel,
@@ -55,6 +59,13 @@ fun DrinkDetailScreen(
     )
 }
 
+/**
+ * Screen for displaying cocktail recipe details based on [uiState].
+ *
+ * @param uiState The current [DrinkDetailUiState] snapshot.
+ * @param onNavigateBack is invoked when the user clicks on the header back button, or via gesture.
+ * @param onRefresh is invoked when a pull-to-refresh action is triggered.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrinkDetailScreen(
@@ -148,6 +159,7 @@ private fun DrinkDetailContent(
     }
 }
 
+@SuppressLint("VisibleForTests")
 @PreviewScreenSizes
 @Composable
 private fun DrinkDetailScreenPreview() {

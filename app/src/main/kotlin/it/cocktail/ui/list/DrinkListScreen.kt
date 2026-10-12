@@ -1,5 +1,6 @@
 package it.cocktail.ui.list
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,9 @@ import it.cocktail.ui.list.model.DrinkListUiState
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
 import it.cocktail.ui.list.model.SearchType
 
+/**
+ * Entry point for the cocktail search screen, wiring [DrinkListViewModel] state to [DrinkListScreen].
+ */
 @Composable
 fun DrinkListScreen(
     modifier: Modifier = Modifier,
@@ -53,6 +57,16 @@ fun DrinkListScreen(
     )
 }
 
+/**
+ * Screen for searching and viewing cocktail lists based on [uiState].
+ *
+ * @param uiState The current [DrinkListUiState] snapshot.
+ * @param onDrinkClicked is invoked when a cocktail item is selected.
+ * @param onRefresh is invoked when a pull-to-refresh action is triggered.
+ * @param onSearchQueryChanged is invoked when the user updates the search text.
+ * @param onSearchTypeChanged is invoked when the [SearchType] chip changes.
+ * @param onSearch is invoked when a search action is submitted.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrinkListScreen(
@@ -147,6 +161,7 @@ fun DrinkListScreen(
     }
 }
 
+@SuppressLint("VisibleForTests")
 @PreviewScreenSizes
 @Composable
 private fun DrinkListScreenPreview() {

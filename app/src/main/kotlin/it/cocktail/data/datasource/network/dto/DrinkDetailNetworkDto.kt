@@ -1,8 +1,12 @@
 package it.cocktail.data.datasource.network.dto
 
+import it.cocktail.domain.model.DrinkDetail
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Network DTO of domain entity [DrinkDetail].
+ */
 @Serializable
 data class DrinkDetailNetworkDto(
     @SerialName("idDrink") val id: Int? = null,

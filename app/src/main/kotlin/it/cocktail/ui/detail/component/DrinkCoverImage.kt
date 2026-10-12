@@ -14,6 +14,9 @@ import it.cocktail.core.ui.component.StyleDefaults
 import it.cocktail.core.ui.model.ImageResource
 import it.cocktail.core.ui.model.ImageUiModel
 
+/**
+ * Shows [image] inside a [ElevatedCard], cropped and with a fixed size and shape.
+ */
 @Composable
 fun DrinkCoverImage(
     image: ImageUiModel,

@@ -6,9 +6,16 @@ import coil3.Uri
 import coil3.toUri
 import it.cocktail.R
 
+/**
+ * Represents different ways to render an image in ui.
+ */
 @Stable
 sealed interface ImageUiModel
 
+/**
+ * implementation of [ImageUiModel] that carries an Android [DrawableRes] for rendering of local images.
+ * @property resId the image's [DrawableRes]
+ */
 @JvmInline
 @Stable
 value class ImageResource(
@@ -19,6 +26,10 @@ value class ImageResource(
     }
 }
 
+/**
+ * implementation of [ImageUiModel] that carries a [Uri] for rendering of remote images.
+ * @property uri the image's [Uri]
+ */
 @JvmInline
 @Stable
 value class ImageUri(

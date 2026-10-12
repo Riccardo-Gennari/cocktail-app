@@ -8,6 +8,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import it.cocktail.core.ui.navigation.Nav3Navigator
 import javax.inject.Inject
 
+/**
+ * The app's main (and only) activity.
+ * Used by Hilt as entry point for DI.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject

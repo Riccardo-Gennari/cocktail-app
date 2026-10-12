@@ -26,13 +26,15 @@ import it.cocktail.core.ui.component.Image
 import it.cocktail.core.ui.component.StyleDefaults
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
 
+/**
+ * Contains the summary of a cocktail recipe, wrapped in [ElevatedCard] and ready to be shown in a list.
+ */
 @Composable
 fun DrinkSummaryListItem(
     drink: DrinkSummaryUiModel,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val imageShape = RoundedCornerShape(12.dp)
     val colors = MaterialTheme.colorScheme
 
     ElevatedCard(
@@ -54,7 +56,7 @@ fun DrinkSummaryListItem(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(imageShape),
+                        .clip(RoundedCornerShape(12.dp)),
                 )
                 Spacer(Modifier.width(16.dp))
             }

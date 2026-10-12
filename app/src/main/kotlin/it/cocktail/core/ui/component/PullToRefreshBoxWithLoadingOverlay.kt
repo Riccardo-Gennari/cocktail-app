@@ -19,6 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Wraps [content] with [PullToRefreshBox], and shows a loading indicator and scrim overlay when [isLoading] is true.
+ */
 @Composable
 fun PullToRefreshBoxWithLoadingOverlay(
     isLoading: Boolean,

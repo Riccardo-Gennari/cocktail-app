@@ -8,6 +8,13 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.decrementAndFetch
 import kotlin.concurrent.atomics.incrementAndFetch
 
+/**
+ * Utility class that coordinates loading state of a component, where multiple concurrent loading operations are possible.
+ *
+ * [isLoading] is true when at least one loading operation is running.
+ *
+ * Each loading operation must be manually started using [onLoadingStarted], and stopped by calling [onLoadingStopped].
+ */
 @OptIn(ExperimentalAtomicApi::class)
 class LoadingStateManager {
     private val isLoadingCount = AtomicInt(0)

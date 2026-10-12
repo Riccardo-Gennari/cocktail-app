@@ -5,6 +5,9 @@ import it.cocktail.data.datasource.network.dto.DrinkDetailNetworkDto
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.model.Ingredient
 
+/**
+ * Maps [DrinkDetailNetworkDto] to a domain [DrinkDetail].
+ */
 fun DrinkDetailNetworkDto.toDomain(): DrinkDetail? {
     val id = id ?: return null
     val name = name?.takeIf { it.isNotBlank() } ?: return null

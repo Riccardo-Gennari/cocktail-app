@@ -1,9 +1,13 @@
 package it.cocktail.ui.detail.model
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Immutable
 import it.cocktail.core.ui.model.ImageResource
 import it.cocktail.core.ui.model.ImageUiModel
 
+/**
+ * Ui model representing an ingredient used to prepare cocktails.
+ */
 @Immutable
 data class IngredientUiModel(
     val name: String = "",
@@ -11,6 +15,8 @@ data class IngredientUiModel(
     val image: ImageUiModel? = null,
 ) {
     companion object {
+        /** @return a [IngredientUiModel] instance filled with example data. Meant for tests and ui previews. */
+        @VisibleForTesting
         fun sample(count: Int) =
             List(count) { index ->
                 when (index) {

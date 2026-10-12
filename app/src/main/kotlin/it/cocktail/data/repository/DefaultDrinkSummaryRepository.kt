@@ -9,6 +9,12 @@ import it.cocktail.domain.model.DrinkSummary
 import it.cocktail.domain.repository.DrinkSummaryRepository
 import javax.inject.Inject
 
+/**
+ * Implementation of [DrinkSummaryRepository] using [CocktailNetworkClient] and [PersistentStorage] data sources.
+ *
+ * @param networkClient the network datasource
+ * @param persistentStorage the local datasource
+ */
 class DefaultDrinkSummaryRepository
     @Inject
     constructor(
@@ -26,6 +32,6 @@ class DefaultDrinkSummaryRepository
         override suspend fun searchByIngredient(ingredient: String): Result<List<DrinkSummary>> =
             networkClient.searchByIngredient(ingredient).map { it.toDomain() }
 
-        override suspend fun searchByName(query: String): Result<List<DrinkSummary>> =
-            networkClient.searchByName(query).map { it.toDomain() }
+        override suspend fun searchByName(name: String): Result<List<DrinkSummary>> =
+            networkClient.searchByName(name).map { it.toDomain() }
     }

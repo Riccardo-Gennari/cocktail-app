@@ -29,6 +29,9 @@ import it.cocktail.R
 import it.cocktail.ui.list.model.SearchState
 import it.cocktail.ui.list.model.SearchType
 
+/**
+ * Shows a search bar built from a [TextField], with some [FilterChip]s beneath it to select [SearchType].
+ */
 @Composable
 fun DrinkSearchBarSection(
     searchState: SearchState,

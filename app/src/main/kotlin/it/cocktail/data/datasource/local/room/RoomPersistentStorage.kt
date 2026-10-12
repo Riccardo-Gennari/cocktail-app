@@ -8,12 +8,22 @@ import it.cocktail.data.datasource.local.dto.DrinkDetailLocalDto
 import it.cocktail.data.datasource.local.dto.DrinkSummaryLocalDto
 import javax.inject.Inject
 
+/**
+ * Implementation of [PersistentStorage] that relies on [DrinksDao] for local storage.
+ *
+ * @param drinksDao the [DrinksDao] providing actual storage functionality
+ * @param log the [Logger] used to log storage events.
+ */
 class RoomPersistentStorage
     @Inject
     constructor(
         private val drinksDao: DrinksDao,
         private val log: Logger,
     ) : PersistentStorage {
+        /**
+         * Any previously stored drinks are replaced by [drinkSummaries].
+         * @see [PersistentStorage.storeDrinkSummaries]
+         */
         override suspend fun storeDrinkSummaries(drinkSummaries: List<DrinkSummaryLocalDto>): Result<Unit> =
             runCatchingCancelable {
                 log.debug(TAG, "Storing drink summaries: $drinkSummaries")

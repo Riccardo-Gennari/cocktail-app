@@ -11,6 +11,9 @@ import it.cocktail.core.ui.model.ImageResource
 import it.cocktail.core.ui.model.ImageUiModel
 import it.cocktail.core.ui.model.ImageUri
 
+/**
+ * Composable that delegates image rendering to [Image] or [AsyncImage] based on [imageUi] type.
+ */
 @Composable
 fun Image(
     imageUi: ImageUiModel,

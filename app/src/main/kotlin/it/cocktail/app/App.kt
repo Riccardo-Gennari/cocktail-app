@@ -11,6 +11,11 @@ import androidx.navigation3.ui.NavDisplay
 import it.cocktail.ui.detail.navigation.drinkDetail
 import it.cocktail.ui.list.navigation.drinkList
 
+/**
+ * Main Compose entry point for the whole application.
+ * Navigation is orchestrated by [backStack].
+ * @param backStack the app's [NavBackStack], which decides the currently visible content, and all other possible routes.
+ */
 @Composable
 fun App(
     backStack: NavBackStack<NavKey>,

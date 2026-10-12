@@ -4,6 +4,9 @@ import androidx.room3.ColumnTypeConverter
 import it.cocktail.data.datasource.local.dto.IngredientLocalDto
 import kotlinx.serialization.json.Json
 
+/**
+ * Type converters required by [DrinksDao] to store [IngredientLocalDto] instances as a string.
+ * */
 class DrinkTypeConverters {
     @ColumnTypeConverter
     fun fromIngredientList(value: List<IngredientLocalDto>): String = Json.encodeToString(value)

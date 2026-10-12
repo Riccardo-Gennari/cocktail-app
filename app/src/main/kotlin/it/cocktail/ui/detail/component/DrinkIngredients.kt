@@ -26,6 +26,9 @@ import it.cocktail.core.ui.component.Image
 import it.cocktail.core.ui.component.StyleDefaults
 import it.cocktail.ui.detail.model.IngredientUiModel
 
+/**
+ * Shows the [ingredients] list in a [Column], each wrapped in a [ElevatedCard] and separated by a [HorizontalDivider].
+ */
 @Composable
 fun DrinkIngredients(
     ingredients: List<IngredientUiModel>,

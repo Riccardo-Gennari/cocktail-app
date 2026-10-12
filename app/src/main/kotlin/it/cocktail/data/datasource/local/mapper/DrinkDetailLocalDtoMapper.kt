@@ -5,6 +5,9 @@ import it.cocktail.data.datasource.local.dto.IngredientLocalDto
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.domain.model.Ingredient
 
+/**
+ * Maps [DrinkDetailLocalDto] to a domain [DrinkDetail].
+ */
 fun DrinkDetailLocalDto.toDomain(): DrinkDetail =
     DrinkDetail(
         id = id,
@@ -17,6 +20,9 @@ fun DrinkDetailLocalDto.toDomain(): DrinkDetail =
         ingredients = ingredients.map { it.toDomain() },
     )
 
+/**
+ * Maps [DrinkDetail] to a [DrinkDetailLocalDto] for local storage.
+ */
 fun DrinkDetail.toLocalDto(): DrinkDetailLocalDto =
     DrinkDetailLocalDto(
         id = id,
@@ -29,6 +35,9 @@ fun DrinkDetail.toLocalDto(): DrinkDetailLocalDto =
         ingredients = ingredients.map { it.toLocalDto() },
     )
 
+/**
+ * Maps [IngredientLocalDto] to a domain [Ingredient].
+ */
 fun IngredientLocalDto.toDomain(): Ingredient =
     Ingredient(
         name = name,
@@ -36,6 +45,9 @@ fun IngredientLocalDto.toDomain(): Ingredient =
         imageUri = imageUri,
     )
 
+/**
+ * Maps [Ingredient] to a [IngredientLocalDto] for local storage.
+ */
 fun Ingredient.toLocalDto(): IngredientLocalDto =
     IngredientLocalDto(
         name = name,

@@ -4,6 +4,9 @@ import it.cocktail.core.ui.model.ImageUri
 import it.cocktail.domain.model.DrinkDetail
 import it.cocktail.ui.detail.model.DrinkDetailUiModel
 
+/**
+ * Maps [DrinkDetail] to its UI equivalent [DrinkDetailUiModel].
+ */
 fun DrinkDetail.toUi(): DrinkDetailUiModel =
     DrinkDetailUiModel(
         id = id,

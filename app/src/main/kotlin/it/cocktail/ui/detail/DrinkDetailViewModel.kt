@@ -23,6 +23,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
+/**
+ * [ViewModel] managing state and events for [DrinkDetailScreen].
+ *
+ * @param drinkId The ID of the cocktail recipe to display.
+ * @param getDetail Use case to fetch the recipe data.
+ * @param log [Logger] for recording events.
+ * @param navigator Handles screen navigation events.
+ */
 @HiltViewModel(assistedFactory = DrinkDetailViewModel.Factory::class)
 class DrinkDetailViewModel
     @AssistedInject
@@ -32,6 +40,7 @@ class DrinkDetailViewModel
         private val log: Logger,
         private val navigator: DrinkDetailNavigator,
     ) : ViewModel() {
+        /** Factory for Hilt assisted injection of [DrinkDetailViewModel]. Allows for typesafe injection of [drinkId] */
         @AssistedFactory
         interface Factory {
             fun create(drinkId: Int): DrinkDetailViewModel
@@ -41,6 +50,7 @@ class DrinkDetailViewModel
         private val loadingState = LoadingStateManager()
         private val errorFlow = MutableStateFlow<UiError?>(null)
 
+        /** Provides a flow of [DrinkDetailUiState] snapshots for the UI to display. */
         val uiState: StateFlow<DrinkDetailUiState> = combine(
             detailFlow,
             errorFlow,
@@ -57,11 +67,13 @@ class DrinkDetailViewModel
             getDrinkDetail(drinkId)
         }
 
+        /** Refreshes the current recipe. */
         fun onRefresh() {
             errorFlow.value = null
             getDrinkDetail(drinkId, forceRefresh = true)
         }
 
+        /** Navigates back to the previous screen. */
         fun onNavigateBack() = navigator.navigateBack()
 
         private fun getDrinkDetail(

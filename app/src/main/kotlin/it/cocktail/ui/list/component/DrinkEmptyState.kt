@@ -21,6 +21,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import it.cocktail.R
 
+/**
+ * Shows a piece of UI informing the user that no cocktails were found.
+ */
 @Composable
 fun DrinkEmptyState(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme

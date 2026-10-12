@@ -1,9 +1,14 @@
 package it.cocktail.ui.detail.model
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Immutable
 import it.cocktail.core.ui.model.ImageResource
 import it.cocktail.core.ui.model.ImageUiModel
+import org.jetbrains.annotations.TestOnly
 
+/**
+ * Ui model representing the details of a cocktail recipe.
+ */
 @Immutable
 data class DrinkDetailUiModel(
     val id: Int = 0,
@@ -14,6 +19,8 @@ data class DrinkDetailUiModel(
     val tags: List<String> = emptyList(),
 ) {
     companion object {
+        /** @return a [DrinkDetailUiModel] instance filled with example data. Meant for tests and ui previews. */
+        @VisibleForTesting
         fun sample() =
             DrinkDetailUiModel(
                 id = 11007,
