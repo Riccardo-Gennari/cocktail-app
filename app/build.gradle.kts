@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kover) apply true
     alias(libs.plugins.ksp)
     alias(libs.plugins.room3)
     alias(libs.plugins.semanticVersioning)
@@ -89,3 +90,16 @@ room3 {
 }
 
 setupTesting()
+
+kover {
+    reports {
+        filters {
+            excludes {
+                annotatedBy("androidx.compose.runtime.Composable")
+                annotatedBy("androidx.compose.ui.tooling.preview.Preview")
+                classes("*ComposableSingletons*", "*LiveLiterals*", "*$*DefaultImpls", "*_*")
+                packages("dagger.hilt", "hilt_aggregated_deps", "*.composable")
+            }
+        }
+    }
+}

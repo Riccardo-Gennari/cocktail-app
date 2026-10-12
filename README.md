@@ -8,7 +8,7 @@ It also includes a **detail page**, offering additional info and instructions fo
 - **Data persistence** using Room 3, for fast retrieval and offline access.
 - **Dependency Injection** using Hilt.
 - **Network Error Handling** with appropriate UI feedback.
-- **Unit tests** using Kotest, MockK and Turbine.
+- **Unit tests** using Kotest, MockK, Turbine and Kover.
 
 ---
 
@@ -27,7 +27,7 @@ graph TD
     end
 
     subgraph Domain["Domain Layer"]
-        UseCases["Use Cases<br/>(Search, Get Detail, Get History)"]
+        UseCases["Use Cases<br/>(Search, Get Detail, Get Last)"]
         RepoInterfaces["Repository Interfaces"]
         Entities["Domain Entities"]
     end
