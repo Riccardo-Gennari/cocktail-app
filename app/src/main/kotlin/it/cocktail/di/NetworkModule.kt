@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class DataModule {
+abstract class NetworkModule {
     /**
      * Binds [KtorCocktailNetworkClient] to the [CocktailNetworkClient] interface.
      *
