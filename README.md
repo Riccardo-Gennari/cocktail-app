@@ -3,6 +3,8 @@ The app presents a **search screen**, allowing users to browse cocktails by name
 
 It also includes a **detail page**, offering additional info and instructions for cocktail preparation.
 
+<img width="2170" height="2270" alt="preview" src="https://github.com/user-attachments/assets/e7df2de8-a991-4da8-b29f-2e007a8435ce" />
+
 ## Tech Features
 - **Compose UI** using Material 3 and Navigation 3.
 - **Data persistence** using Room 3, for fast retrieval and offline access.
