@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import it.cocktail.core.ui.component.AppTheme
 import it.cocktail.ui.detail.navigation.drinkDetail
 import it.cocktail.ui.list.navigation.drinkList
 
@@ -21,17 +22,18 @@ fun App(
     backStack: NavBackStack<NavKey>,
     modifier: Modifier = Modifier,
 ) {
-    NavDisplay(
-        backStack = backStack,
-        modifier = modifier,
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator(),
-        ),
-        entryProvider =
-            entryProvider {
+    AppTheme {
+        NavDisplay(
+            backStack = backStack,
+            modifier = modifier,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            entryProvider = entryProvider {
                 drinkDetail()
                 drinkList()
             },
-    )
+        )
+    }
 }
