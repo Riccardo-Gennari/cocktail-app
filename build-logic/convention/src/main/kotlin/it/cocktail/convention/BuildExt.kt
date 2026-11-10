@@ -14,11 +14,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 val GitSemverPluginExtension.versionCode: Int
     get() = (semVersion.major * 10000) + (semVersion.minor * 100) + (semVersion.patch * 10) + semVersion.commitCount
 
-fun KotlinBaseExtension.setupKotlin(
-    kotlinVersionString: String,
-    javaVersion: Int,
-) {
-    jvmToolchain(javaVersion)
+fun KotlinBaseExtension.setupKotlin(kotlinVersionString: String) {
+    jvmToolchain(BuildParams.javaVersion.majorVersion.toInt())
     if (this is HasConfigurableKotlinCompilerOptions<*>) {
         val kotlinVersion = extractKotlinVersionFromString(kotlinVersionString)
         compilerOptions {
