@@ -29,10 +29,16 @@ fun KotlinBaseExtension.setupKotlin(kotlinVersionString: String) {
 fun Provider<String>.getAsInt() = get().toInt()
 
 fun Project.setupTesting() {
-    tasks.withType<Test> {
+    tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         filter.isFailOnNoMatchingTests = false
         failOnNoDiscoveredTests.set(false)
+        jvmArgs(
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+        )
         testLogging {
             events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
             exceptionFormat = TestExceptionFormat.SHORT

@@ -11,6 +11,7 @@ It also includes a **detail page**, offering additional info and instructions fo
 - **Dependency Injection** using Hilt.
 - **Network Error Handling** with appropriate UI feedback.
 - **Unit tests** using Kotest, MockK, Turbine and Kover.
+- **Ui tests** for Compose, using Robolectric and JUnit
 
 ---
 
