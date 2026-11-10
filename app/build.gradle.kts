@@ -37,11 +37,14 @@ dependencies {
     implementation(libs.room3.runtime)
 
     debugImplementation(libs.compose.uiTooling)
+    debugImplementation(libs.composeTestManifest)
 
     ksp(libs.hilt.compiler)
     ksp(libs.room3.compiler)
 
     testImplementation(libs.bundles.unitTest)
+    testImplementation(libs.bundles.composeTest)
+    testImplementation(libs.composeTestManifest)
     testImplementation(libs.ktor.client.mock)
 }
 
@@ -56,6 +59,7 @@ android {
         manifestPlaceholders["appName"] = BuildParams.APP_NAME
         minSdk = BuildParams.MIN_SDK
         targetSdk = BuildParams.TARGET_SDK
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = semver.versionCode
         versionName = semver.version
     }
@@ -85,7 +89,19 @@ android {
         buildConfig = true
     }
 
-    testOptions.unitTests.isIncludeAndroidResources = true
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all { test ->
+                test.jvmArgs(
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                )
+            }
+        }
+    }
 }
 
 androidComponents {
