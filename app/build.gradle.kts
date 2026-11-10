@@ -1,5 +1,4 @@
 import it.cocktail.convention.BuildParams
-import it.cocktail.convention.getAsInt
 import it.cocktail.convention.setupKotlin
 import it.cocktail.convention.setupTesting
 import it.cocktail.convention.versionCode
@@ -16,10 +15,12 @@ plugins {
 }
 
 kotlin {
-    setupKotlin(
-        kotlinVersionString = libs.versions.kotlin.get(),
-        javaVersion = libs.versions.jvmTarget.getAsInt(),
-    )
+    setupKotlin(kotlinVersionString = libs.versions.kotlin.get())
+}
+
+semver {
+    defaultPreRelease = ""
+    noDirtyCheck = true
 }
 
 dependencies {
@@ -43,25 +44,22 @@ dependencies {
 
 android {
     namespace = BuildParams.PACKAGE_NAME
-    compileSdk = libs.versions.android.compileSdk
-        .getAsInt()
+    compileSdk = BuildParams.COMPILE_SDK
 
     defaultConfig {
         applicationId = BuildParams.PACKAGE_NAME
         buildConfigField("String", "APP_NAME", "\"${BuildParams.APP_NAME}\"")
         buildConfigField("String", "COCKTAIL_API_KEY", "\"${BuildParams.COCKTAIL_API_KEY}\"")
         manifestPlaceholders["appName"] = BuildParams.APP_NAME
-        minSdk = libs.versions.android.minSdk
-            .getAsInt()
-        targetSdk = libs.versions.android.targetSdk
-            .getAsInt()
+        minSdk = BuildParams.MIN_SDK
+        targetSdk = BuildParams.TARGET_SDK
         versionCode = semver.versionCode
         versionName = semver.version
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-        targetCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
+        sourceCompatibility = BuildParams.javaVersion
+        targetCompatibility = BuildParams.javaVersion
     }
 
     packaging {

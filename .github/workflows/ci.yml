@@ -2,7 +2,17 @@ name: Android CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  # Group identifier: Uses the PR number if it's a Pull Request (e.g., "Android CI-42"),
+  # or falls back to the git ref for direct branch pushes (e.g., "Android CI-refs/heads/main").
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
