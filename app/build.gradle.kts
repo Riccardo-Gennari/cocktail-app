@@ -1,3 +1,6 @@
+@file:Suppress("UnstableApiUsage")
+
+import com.android.build.api.variant.HostTestBuilder
 import it.cocktail.convention.BuildParams
 import it.cocktail.convention.setupKotlin
 import it.cocktail.convention.setupTesting
@@ -80,6 +83,14 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions.unitTests.isIncludeAndroidResources = true
+}
+
+androidComponents {
+    beforeVariants { variantBuilder ->
+        variantBuilder.hostTests[HostTestBuilder.UNIT_TEST_TYPE]?.enable = true
     }
 }
 
