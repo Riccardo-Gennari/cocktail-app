@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.kover) apply true
+    alias(libs.plugins.kover)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room3)
     alias(libs.plugins.semanticVersioning)
