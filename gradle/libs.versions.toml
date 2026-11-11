@@ -39,13 +39,13 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "androidx-compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "androidx-compose" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "androidx-compose-material3" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidx-compose" }
-compose-uiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-compose" }
-composeTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-compose" }
-composeTestManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-compose" }
 compose-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
 compose-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidx-compose" }
+compose-uiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-compose" }
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidx-compose" }
+compose-uiTest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-compose" }
+compose-uiTest-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-compose" }
 detekt-compose-rules = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "ktlint-compose-rules" }
 detekt-gradlePlugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -83,7 +83,7 @@ compose = [
 hilt = [ "hilt-android", "hilt-viewmodel" ]
 ktor = [ "ktor-client-contentNegotiation", "ktor-client-core", "ktor-client-okhttp", "ktor-serialization-json", "slf4j-nop" ]
 unitTest = [ "kotest-assertions-core", "kotest-property", "kotest-runner-junit5", "kotlinx-coroutines-test", "mockk", "turbine"]
-composeTest = [ "composeTestJunit4", "androidx-test-ext-junit", "robolectric", "junit-vintage-engine" ]
+composeTest = ["compose-uiTest-junit4", "compose-uiTest-manifest", "androidx-test-ext-junit", "robolectric", "junit-vintage-engine" ]
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
