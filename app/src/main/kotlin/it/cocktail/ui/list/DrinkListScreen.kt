@@ -63,7 +63,7 @@ fun DrinkListScreen(
  * @param uiState The current [DrinkListUiState] snapshot.
  * @param onDrinkClicked is invoked when a cocktail item is selected.
  * @param onRefresh is invoked when a pull-to-refresh action is triggered.
- * @param onSearchQueryChanged is invoked when the user updates the search text.
+ * @param onSearchQueryChanged is invoked when the user updates the search text. Search will auto-trigger after typing pauses.
  * @param onSearchTypeChanged is invoked when the [SearchType] chip changes.
  * @param onSearch is invoked when a search action is submitted.
  */
