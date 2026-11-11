@@ -31,7 +31,9 @@ import kotlin.time.Duration.Companion.seconds
 class DrinkListViewModelTest :
     BehaviorSpec({
         Given("an instance") {
-            val searchDrinks = mockk<SearchDrinksUseCase>()
+            val searchDrinks = mockk<SearchDrinksUseCase> {
+                coEvery { this@mockk.invoke(any()) } returns Result.success(emptyList())
+            }
             val getLastDrinks = mockk<GetLastDrinksUseCase> {
                 coEvery { this@mockk.invoke() } returns Result.success(emptyList())
             }
@@ -176,6 +178,19 @@ class DrinkListViewModelTest :
                         viewModel.onSearchQueryChanged(to)
 
                         if (from == to) expectNoEvents() else awaitUntil { it.searchState.query == to }
+                    }
+                }
+
+                Then("it automatically triggers search after user stops typing") {
+                    val searchResult = listOf(DrinkSummary(id = 10, name = "Mojito", imageUri = "uri"))
+                    coEvery { searchDrinks(DrinkQuery.ByName("Mojito")) } returns Result.success(searchResult)
+
+                    viewModel.onSearchTypeChanged(SearchType.Name)
+                    viewModel.onSearchQueryChanged("Mojito")
+
+                    viewModel.uiState.test {
+                        val state = awaitUntil { !it.isLoading && it.drinkList.isNotEmpty() }
+                        state.drinkList shouldBe searchResult.map { it.toUi() }
                     }
                 }
             }

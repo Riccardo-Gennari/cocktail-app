@@ -18,13 +18,17 @@ import it.cocktail.ui.list.model.DrinkSummaryUiModel
 import it.cocktail.ui.list.model.SearchState
 import it.cocktail.ui.list.model.SearchType
 import it.cocktail.ui.list.navigation.DrinkListNavigator
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * [ViewModel] managing state and events for [DrinkListScreen].
@@ -47,6 +51,7 @@ class DrinkListViewModel
         private val errorFlow = MutableStateFlow<UiError?>(null)
         private val loadingState = LoadingStateManager()
         private val searchStateFlow = MutableStateFlow(SearchState())
+        private var searchJob: Job? = null
 
         /** Provides a flow of [DrinkListUiState] snapshots for the UI to display. */
         val uiState: StateFlow<DrinkListUiState> = combine(
@@ -77,6 +82,7 @@ class DrinkListViewModel
 
         /** Searches for cocktails using the current search state. */
         fun onSearch() {
+            searchJob?.cancel()
             errorFlow.value = null
             viewModelScope.launchWhileLoading(loadingState) {
                 searchDrinks(query = searchStateFlow.value.toDrinkQuery()).fold(
@@ -95,13 +101,23 @@ class DrinkListViewModel
         /** Updates the current [SearchType] */
         fun onSearchTypeChanged(searchType: SearchType) {
             if (searchStateFlow.value.type == searchType) return
+            searchJob?.cancel()
             searchStateFlow.value = SearchState(query = "", type = searchType)
         }
 
-        /** Updates the current search query. */
+        /** Updates the current search query and automatically triggers a search after a debounce delay. */
         fun onSearchQueryChanged(query: String) {
             if (searchStateFlow.value.query == query) return
             searchStateFlow.update { it.copy(query = query) }
+            scheduleDebouncedSearch()
+        }
+
+        private fun scheduleDebouncedSearch() {
+            searchJob?.cancel()
+            searchJob = viewModelScope.launch {
+                delay(SEARCH_DEBOUNCE_DELAY)
+                onSearch()
+            }
         }
 
         /** Navigates to the detail screen for the selected [drink]. */
@@ -109,5 +125,6 @@ class DrinkListViewModel
 
         companion object {
             private val TAG = DrinkListViewModel::class.logTag()
+            private val SEARCH_DEBOUNCE_DELAY = 300.milliseconds
         }
     }
