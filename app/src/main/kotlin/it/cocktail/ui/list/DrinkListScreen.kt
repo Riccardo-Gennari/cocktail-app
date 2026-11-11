@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,6 +35,7 @@ import it.cocktail.ui.list.component.DrinkSearchBarSection
 import it.cocktail.ui.list.component.DrinkSummaryListItem
 import it.cocktail.ui.list.model.DrinkListUiState
 import it.cocktail.ui.list.model.DrinkSummaryUiModel
+import it.cocktail.ui.list.model.ListContentState
 import it.cocktail.ui.list.model.SearchType
 
 /**
@@ -78,65 +79,79 @@ fun DrinkListScreen(
     onSearchTypeChanged: (SearchType) -> Unit = {},
     onSearch: () -> Unit = {},
 ) {
-    PullToRefreshBoxWithLoadingOverlay(
-        isLoading = uiState.isLoading,
-        onRefresh = onSearch,
-    ) {
-        Scaffold(
-            modifier = modifier,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = StyleDefaults.topAppBarTitleStyle,
-                        )
-                    },
-                    colors = StyleDefaults.topAppBarColors,
-                )
-            },
-        ) { scaffoldPadding ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = StyleDefaults.topAppBarTitleStyle,
+                    )
+                },
+                colors = StyleDefaults.topAppBarColors,
+            )
+        },
+    ) { scaffoldPadding ->
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding),
+        ) {
+            DrinkSearchBarSection(
+                searchState = uiState.searchState,
+                onQueryChange = onSearchQueryChanged,
+                onSearchTypeChange = onSearchTypeChanged,
+                onSearch = onSearch,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(scaffoldPadding),
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+
+            PullToRefreshBoxWithLoadingOverlay(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onSearch,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
             ) {
-                DrinkSearchBarSection(
-                    searchState = uiState.searchState,
-                    onQueryChange = onSearchQueryChanged,
-                    onSearchTypeChange = onSearchTypeChanged,
-                    onSearch = onSearch,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-
-                val isEmptyState = remember(uiState.drinkList, uiState.isLoading) {
-                    uiState.drinkList.isEmpty() && !uiState.isLoading
-                }
-
                 LazyColumn(
                     contentPadding = PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    when {
-                        uiState.error != null -> {
-                            item {
-                                Box(
-                                    contentAlignment = Alignment.TopCenter,
-                                    modifier = Modifier.fillMaxWidth().animateItem(),
-                                ) {
-                                    DrinkErrorState(
-                                        error = uiState.error,
-                                        onRetry = onRefresh,
-                                    )
+                    when (uiState.contentState) {
+                        ListContentState.Error -> {
+                            uiState.error?.let { error ->
+                                item {
+                                    Box(
+                                        contentAlignment = Alignment.TopCenter,
+                                        modifier = Modifier.fillMaxWidth().animateItem(),
+                                    ) {
+                                        DrinkErrorState(
+                                            error = error,
+                                            onRetry = onRefresh,
+                                        )
+                                    }
                                 }
                             }
                         }
 
-                        isEmptyState -> {
+                        ListContentState.Loading -> {
+                            item {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 48.dp),
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+
+                        ListContentState.Empty -> {
                             item {
                                 Box(
                                     contentAlignment = Alignment.TopCenter,
@@ -147,7 +162,7 @@ fun DrinkListScreen(
                             }
                         }
 
-                        else -> {
+                        ListContentState.Content -> {
                             items(items = uiState.drinkList, key = { it.id }) { drink ->
                                 DrinkSummaryListItem(drink, modifier = Modifier.animateItem()) {
                                     onDrinkClicked(drink)

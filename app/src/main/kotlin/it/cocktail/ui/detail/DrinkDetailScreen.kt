@@ -2,11 +2,6 @@ package it.cocktail.ui.detail
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +35,7 @@ import it.cocktail.ui.detail.component.DrinkDetailInfoChips
 import it.cocktail.ui.detail.component.DrinkErrorState
 import it.cocktail.ui.detail.component.DrinkIngredients
 import it.cocktail.ui.detail.component.DrinkInstructions
+import it.cocktail.ui.detail.model.DetailContentState
 import it.cocktail.ui.detail.model.DrinkDetailUiModel
 import it.cocktail.ui.detail.model.DrinkDetailUiState
 
@@ -77,7 +74,7 @@ fun DrinkDetailScreen(
     BackHandler(onBack = onNavigateBack)
 
     PullToRefreshBoxWithLoadingOverlay(
-        isLoading = uiState.isLoading,
+        isRefreshing = uiState.isRefreshing,
         onRefresh = onRefresh,
     ) {
         Scaffold(
@@ -99,30 +96,43 @@ fun DrinkDetailScreen(
                 )
             },
         ) { scaffoldPadding ->
-            AnimatedContent(
-                targetState = uiState.error,
-                transitionSpec = { fadeIn(tween()) togetherWith fadeOut(tween()) },
-            ) { error ->
-                if (error == null) return@AnimatedContent
-                Box(
-                    contentAlignment = Alignment.TopCenter,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(scaffoldPadding)
-                        .verticalScroll(rememberScrollState()), // for swipe to refresh gestures to work
-                ) {
-                    DrinkErrorState(
-                        error = error,
-                        onRetry = onRefresh,
-                    )
+            when (uiState.contentState) {
+                DetailContentState.Error -> {
+                    uiState.error?.let { error ->
+                        Box(
+                            contentAlignment = Alignment.TopCenter,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(scaffoldPadding)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            DrinkErrorState(
+                                error = error,
+                                onRetry = onRefresh,
+                            )
+                        }
+                    }
                 }
-            }
 
-            if (uiState.drinkDetail != null) {
-                DrinkDetailContent(
-                    drink = uiState.drinkDetail,
-                    modifier = Modifier.padding(scaffoldPadding),
-                )
+                DetailContentState.Loading -> {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(scaffoldPadding),
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                DetailContentState.Content -> {
+                    uiState.drinkDetail?.let { drink ->
+                        DrinkDetailContent(
+                            drink = drink,
+                            modifier = Modifier.padding(scaffoldPadding),
+                        )
+                    }
+                }
             }
         }
     }
