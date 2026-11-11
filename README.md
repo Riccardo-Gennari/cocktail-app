@@ -1,4 +1,7 @@
 # CocktailApp
+
+[![Android CI](https://github.com/Riccardo-Gennari/cocktail-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Riccardo-Gennari/cocktail-app/actions/workflows/ci.yml)
+
 The app presents a **search screen**, allowing users to browse cocktails by name or ingredient.
 
 It also includes a **detail page**, offering additional info and instructions for cocktail preparation.
