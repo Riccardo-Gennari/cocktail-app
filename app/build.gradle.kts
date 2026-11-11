@@ -37,14 +37,13 @@ dependencies {
     implementation(libs.room3.runtime)
 
     debugImplementation(libs.compose.uiTooling)
-    debugImplementation(libs.composeTestManifest)
+    debugImplementation(libs.compose.uiTest.manifest)
 
     ksp(libs.hilt.compiler)
     ksp(libs.room3.compiler)
 
     testImplementation(libs.bundles.unitTest)
     testImplementation(libs.bundles.composeTest)
-    testImplementation(libs.composeTestManifest)
     testImplementation(libs.ktor.client.mock)
 }
 
